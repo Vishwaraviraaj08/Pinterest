@@ -29,7 +29,6 @@ const backgroundImages = [
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
     birthdate: '',
@@ -73,9 +72,7 @@ const RegisterPage: React.FC = () => {
       await register({
         email: formData.email,
         password: formData.password,
-        username: formData.email.split('@')[0],
-        firstName: formData.name.split(' ')[0] || formData.name,
-        lastName: formData.name.split(' ')[1] || '',
+        confirmPassword: formData.password,
       });
       navigate('/');
     } catch (err: any) {

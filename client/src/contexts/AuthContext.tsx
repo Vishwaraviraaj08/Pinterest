@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService } from '../services/authService';
 
 interface User {
   id: string;
@@ -27,6 +28,8 @@ interface RegisterData {
   username: string;
   firstName: string;
   lastName: string;
+  confirmPassword: string;
+  mobileNumber?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,81 +48,99 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     // Check for stored session
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedUser = sessionStorage.getItem('user');
+    const storedToken = sessionStorage.getItem('token');
+    if (storedUser && storedToken) {
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string) => {
-    // Mock API call - In production, this would call the User Authentication Service
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        if (email && password) {
-          const mockUser: User = {
-            id: '1',
-            email,
-            username: email.split('@')[0],
-            firstName: 'John',
-            lastName: 'Doe',
-            bio: 'Pinterest enthusiast',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-            followers: 1234,
-            following: 567,
-          };
-          setUser(mockUser);
-          setIsAuthenticated(true);
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          resolve();
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      }, 1000);
-    });
+    try {
+      const response = await authService.login({ email, password });
+      const token = response.token;
+      
+      // Store token in session storage
+      sessionStorage.setItem('token', token);
+      
+      // Fetch user profile
+      const userProfile = await authService.getProfile(response.userId);
+      
+      const userData: User = {
+        id: response.userId.toString(),
+        email: userProfile.email,
+        username: userProfile.username,
+        firstName: userProfile.firstName || '',
+        lastName: userProfile.lastName || '',
+        bio: userProfile.bio,
+        avatar: userProfile.avatar,
+        followers: 0,
+        following: 0,
+      };
+      
+      setUser(userData);
+      setIsAuthenticated(true);
+      sessionStorage.setItem('user', JSON.stringify(userData));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
   };
 
   const register = async (userData: RegisterData) => {
-    // Mock API call - In production, this would call the User Authentication Service
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate checking for existing email
-        const existingUsers = ['existing@example.com', 'test@test.com'];
-        if (existingUsers.includes(userData.email)) {
-          reject(new Error('EMAIL_EXISTS'));
-          return;
-        }
-
-        const mockUser: User = {
-          id: Date.now().toString(),
-          email: userData.email,
-          username: userData.username,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          bio: '',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400',
-          followers: 0,
-          following: 0,
-        };
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        resolve();
-      }, 1000);
-    });
+    try {
+      const response = await authService.register({
+        email: userData.email,
+        username: userData.username,
+        password: userData.password,
+        confirmPassword: userData.confirmPassword,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        mobileNumber: userData.mobileNumber,
+      });
+      
+      const token = response.token;
+      sessionStorage.setItem('token', token);
+      
+      const userProfile = await authService.getProfile(response.userId);
+      
+      const newUser: User = {
+        id: response.userId.toString(),
+        email: userProfile.email,
+        username: userProfile.username,
+        firstName: userProfile.firstName || '',
+        lastName: userProfile.lastName || '',
+        bio: userProfile.bio,
+        avatar: userProfile.avatar,
+        followers: 0,
+        following: 0,
+      };
+      
+      setUser(newUser);
+      setIsAuthenticated(true);
+      sessionStorage.setItem('user', JSON.stringify(newUser));
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Registration failed');
+    }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('token');
   };
 
-  const updateProfile = (userData: Partial<User>) => {
+  const updateProfile = async (userData: Partial<User>) => {
     if (user) {
-      const updatedUser = { ...user, ...userData };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      try {
+        const updated = await authService.updateProfile(parseInt(user.id), userData);
+        const updatedUser = { ...user, ...updated };
+        setUser(updatedUser);
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error('Failed to update profile:', error);
+      }
     }
   };
 

@@ -1,0 +1,92 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      routes:
+        - id: user-authentication-service
+          uri: lb://user-authentication-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+        - id: content-service
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/**
+          filters:
+            - StripPrefix=0
+            - name: RequestHeader
+              args:
+                name: X-User-Id
+                value: ${userId}
+        - id: collaboration-service
+          uri: lb://collaboration-service
+          predicates:
+            - Path=/api/collaboration/**
+          filters:
+            - StripPrefix=0
+            - name: RequestHeader
+              args:
+                name: X-User-Id
+                value: ${userId}
+        - id: business-account-service
+          uri: lb://business-account-service
+          predicates:
+            - Path=/api/business/**
+          filters:
+            - StripPrefix=0
+            - name: RequestHeader
+              args:
+                name: X-User-Id
+                value: ${userId}
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        service-name: gateway-service
+        enabled: true
+
+jwt:
+  secret: pinterest-secret-key-for-jwt-token-generation-2024
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+  health:
+    circuitbreakers:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.pinterest: DEBUG
+
+
+
+
