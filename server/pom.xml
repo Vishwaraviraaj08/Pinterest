@@ -13,6 +13,11 @@
     <name>Pinterest Microservices</name>
     <description>Pinterest application using microservices architecture</description>
 
+
+
+
+
+
     <modules>
         <module>user-authentication-service</module>
         <module>content-service</module>
