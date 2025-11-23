@@ -1,0 +1,338 @@
+:root {
+  --pinterest-red: #e60023;
+  --pinterest-red-hover: #ad081b;
+  --dark-gray: #111;
+  --medium-gray: #5f5f5f;
+  --light-gray: #efefef;
+  --border-color: #e1e1e1;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #fff;
+}
+
+.app-container {
+  min-height: 100vh;
+}
+
+/* Auth Page Background Scrolling Animation */
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.auth-background-scroll {
+  animation: scrollUp 60s linear infinite;
+}
+
+.auth-background-container {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-auto-rows: minmax(150px, 250px);
+  gap: 8px;
+  opacity: 0.25;
+  z-index: 0;
+  height: 200vh;
+}
+
+/* Custom Pinterest Red Button */
+.btn-pinterest {
+  background-color: var(--pinterest-red);
+  color: white;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-pinterest:hover {
+  background-color: var(--pinterest-red-hover);
+  color: white;
+}
+
+.btn-pinterest:focus {
+  background-color: var(--pinterest-red-hover);
+  color: white;
+  box-shadow: none;
+}
+
+/* Custom Secondary Button */
+.btn-secondary-custom {
+  background-color: #efefef;
+  color: #000;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary-custom:hover {
+  background-color: #e2e2e2;
+  color: #000;
+}
+
+/* Navbar Styles */
+.navbar-pinterest {
+  background-color: white;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  padding: 12px 16px;
+}
+
+.navbar-brand-pinterest {
+  font-weight: 700;
+  color: var(--pinterest-red) !important;
+  font-size: 24px;
+}
+
+/* Search Bar */
+.search-bar-container {
+  flex: 1;
+  max-width: 800px;
+}
+
+.search-input {
+  border-radius: 24px;
+  border: none;
+  background-color: #efefef;
+  padding: 12px 16px;
+}
+
+.search-input:focus {
+  background-color: #e1e1e1;
+  box-shadow: none;
+  border: none;
+}
+
+/* Masonry Grid */
+.masonry-grid {
+  column-count: 5;
+  column-gap: 16px;
+  padding: 16px;
+}
+
+@media (max-width: 1400px) {
+  .masonry-grid {
+    column-count: 4;
+  }
+}
+
+@media (max-width: 1200px) {
+  .masonry-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 768px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .masonry-grid {
+    column-count: 1;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+/* Pin Card Hover Effects */
+.pin-card {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  transition: none;
+}
+
+.pin-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+}
+
+.pin-card:hover img {
+  transform: scale(1.05);
+}
+
+.pin-card:hover {
+  transform: none;
+}
+
+.pin-title-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  color: white;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 0 0 16px 16px;
+}
+
+.pin-card:hover .pin-title-overlay {
+  opacity: 1;
+}
+
+.pin-top-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.pin-card:hover .pin-top-actions {
+  opacity: 1;
+}
+
+/* Board Card */
+.board-card {
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.board-card:hover {
+  transform: scale(1.02);
+}
+
+.board-card-header {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  background-color: #efefef;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  height: 100%;
+}
+
+.board-grid-item {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Profile Styles */
+.profile-header {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 20px;
+}
+
+.profile-stat {
+  text-align: center;
+}
+
+/* Auth Pages */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #efefef;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.auth-logo {
+  text-align: center;
+  color: var(--pinterest-red);
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+/* Modal customization */
+.modal-pin-detail {
+  max-width: 1200px;
+  width: 90%;
+}
+
+.modal-pin-detail .modal-content {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.modal-backdrop-blur {
+  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 768px) {
+  .modal-pin-detail {
+    max-width: 95%;
+  }
+}
+
+/* Utility Classes */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.text-pinterest {
+  color: var(--pinterest-red);
+}
+
+.bg-pinterest {
+  background-color: var(--pinterest-red);
+}
+
+/* Loading Spinner */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
