@@ -18,10 +18,12 @@ public class AuthController {
 
     private final UserService userService;
 
-    @PostMapping("/register")
+    @PostMapping({ "/register", "/register/" })
     @Operation(summary = "Register a new user")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        System.out.println("RECEIVED REGISTER REQUEST: " + request);
         AuthResponse response = userService.register(request);
+        System.out.println("REGISTRATION SUCCESS: " + response);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -55,7 +57,3 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 }
-
-
-
-

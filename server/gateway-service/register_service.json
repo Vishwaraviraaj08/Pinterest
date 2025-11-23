@@ -1,0 +1,6 @@
+{
+    "ID": "user-authentication-service-8081",
+    "Name": "user-authentication-service",
+    "Address": "localhost",
+    "Port": 8081
+}

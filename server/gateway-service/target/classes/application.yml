@@ -8,7 +8,7 @@ spring:
     gateway:
       routes:
         - id: user-authentication-service
-          uri: lb://user-authentication-service
+          uri: http://localhost:8081
           predicates:
             - Path=/api/auth/**
           filters:
@@ -84,7 +84,10 @@ management:
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    reactor.netty: DEBUG
     com.pinterest: DEBUG
 
 
