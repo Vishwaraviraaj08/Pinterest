@@ -1,0 +1,22 @@
+{
+  "name": "@vishwaraviraaj/pinterest",
+  "version": "1.1.0",
+  "description": "A comprehensive Pinterest-like social media platform built using microservices architecture with Spring Boot backend and React frontend.",
+  "main": "index.js",
+  "private": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vishwaraviraaj08/Pinterest.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Vishwaraviraaj08/Pinterest/issues"
+  },
+  "homepage": "https://github.com/Vishwaraviraaj08/Pinterest#readme"
+}
