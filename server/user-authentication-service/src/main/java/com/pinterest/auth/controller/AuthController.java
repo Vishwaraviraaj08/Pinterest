@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "User authentication and registration APIs")
+// @CrossOrigin(origins = "http://localhost:3000/")
 public class AuthController {
 
     private final UserService userService;
@@ -43,7 +44,7 @@ public class AuthController {
 
     @GetMapping("/profile/{userId}")
     @Operation(summary = "Get user profile")
-    public ResponseEntity<UserResponse> getUserProfile(@PathVariable Long userId) {
+    public ResponseEntity<UserResponse> getUserProfile(@PathVariable("userId") Long userId) {
         UserResponse response = userService.getUserProfile(userId);
         return ResponseEntity.ok(response);
     }
@@ -51,7 +52,7 @@ public class AuthController {
     @PutMapping("/profile/{userId}")
     @Operation(summary = "Update user profile")
     public ResponseEntity<UserResponse> updateUserProfile(
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @RequestBody UserResponse updateRequest) {
         UserResponse response = userService.updateUserProfile(userId, updateRequest);
         return ResponseEntity.ok(response);

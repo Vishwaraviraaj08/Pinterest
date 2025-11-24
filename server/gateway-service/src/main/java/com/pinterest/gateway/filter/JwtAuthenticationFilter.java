@@ -33,20 +33,13 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            
-            // Handle CORS preflight requests
-            if (request.getMethod().name().equals("OPTIONS")) {
-                ServerHttpResponse response = exchange.getResponse();
-                response.setStatusCode(HttpStatus.OK);
-                response.getHeaders().add("Access-Control-Allow-Origin", "*");
-                response.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-                response.getHeaders().add("Access-Control-Allow-Headers", "*");
-                response.getHeaders().add("Access-Control-Max-Age", "3600");
-                return response.setComplete();
-            }
-            
+
+            // CORS is handled by global configuration in application.yml
+            // No need to manually add CORS headers here
+
             // Skip authentication for auth endpoints
             if (request.getURI().getPath().startsWith("/api/auth")) {
+                log.debug("Skipping JWT authentication for auth endpoint: {}", request.getURI().getPath());
                 return chain.filter(exchange);
             }
 
@@ -60,8 +53,9 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
             }
 
             String token = authHeader.substring(7);
-            
+
             try {
+                log.debug("Validating JWT token for path: {}", request.getURI().getPath());
                 SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
                 Claims claims = Jwts.parser()
                         .verifyWith(key)
@@ -96,7 +90,3 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
         // Configuration properties if needed
     }
 }
-
-
-
-

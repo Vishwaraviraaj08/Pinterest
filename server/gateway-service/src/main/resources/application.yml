@@ -6,43 +6,26 @@ spring:
     name: gateway-service
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true
       routes:
         - id: user-authentication-service
-          uri: http://localhost:8081
+          uri: lb://user-authentication-service
           predicates:
             - Path=/api/auth/**
-          filters:
-            - StripPrefix=0
         - id: content-service
           uri: lb://content-service
           predicates:
             - Path=/api/content/**
-          filters:
-            - StripPrefix=0
-            - name: RequestHeader
-              args:
-                name: X-User-Id
-                value: ${userId}
         - id: collaboration-service
           uri: lb://collaboration-service
           predicates:
             - Path=/api/collaboration/**
-          filters:
-            - StripPrefix=0
-            - name: RequestHeader
-              args:
-                name: X-User-Id
-                value: ${userId}
         - id: business-account-service
           uri: lb://business-account-service
           predicates:
             - Path=/api/business/**
-          filters:
-            - StripPrefix=0
-            - name: RequestHeader
-              args:
-                name: X-User-Id
-                value: ${userId}
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -66,6 +49,23 @@ spring:
       discovery:
         service-name: gateway-service
         enabled: true
+    loadbalancer:
+      ribbon:
+        enabled: false
+  webflux:
+    base-path: /
+
+# WebClient and Netty configuration
+reactor:
+  netty:
+    http:
+      client:
+        connect-timeout: 30000
+        response-timeout: 30s
+        pool:
+          max-connections: 500
+          acquire-timeout: 45s
+
 
 jwt:
   secret: pinterest-secret-key-for-jwt-token-generation-2024
@@ -89,7 +89,3 @@ logging:
     org.springframework.web.reactive: DEBUG
     reactor.netty: DEBUG
     com.pinterest: DEBUG
-
-
-
-

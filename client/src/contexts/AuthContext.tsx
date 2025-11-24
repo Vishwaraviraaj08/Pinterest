@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/authService';
 
 interface User {
@@ -43,30 +43,31 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    // Check for stored session
+  // Initialize state from sessionStorage immediately to prevent redirect issues
+  const [user, setUser] = useState<User | null>(() => {
     const storedUser = sessionStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const storedToken = sessionStorage.getItem('token');
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
-  }, []);
+    const storedUser = sessionStorage.getItem('user');
+    return !!(storedToken && storedUser);
+  });
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
       const token = response.token;
-      
+
       // Store token in session storage
       sessionStorage.setItem('token', token);
-      
+
       // Fetch user profile
       const userProfile = await authService.getProfile(response.userId);
-      
+
       const userData: User = {
         id: response.userId.toString(),
         email: userProfile.email,
@@ -78,7 +79,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         followers: 0,
         following: 0,
       };
-      
+
       setUser(userData);
       setIsAuthenticated(true);
       sessionStorage.setItem('user', JSON.stringify(userData));
@@ -98,12 +99,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         lastName: userData.lastName,
         mobileNumber: userData.mobileNumber,
       });
-      
+
       const token = response.token;
       sessionStorage.setItem('token', token);
-      
+
       const userProfile = await authService.getProfile(response.userId);
-      
+
       const newUser: User = {
         id: response.userId.toString(),
         email: userProfile.email,
@@ -115,7 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         followers: 0,
         following: 0,
       };
-      
+
       setUser(newUser);
       setIsAuthenticated(true);
       sessionStorage.setItem('user', JSON.stringify(newUser));
@@ -125,10 +126,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
+    // Clear sessionStorage first (synchronous)
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
+    sessionStorage.clear(); // Clear all sessionStorage to be safe
+
+    // Then update state
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   const updateProfile = async (userData: Partial<User>) => {
