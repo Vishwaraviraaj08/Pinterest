@@ -32,14 +32,14 @@ public class BoardController {
 
     @GetMapping("/{boardId}")
     @Operation(summary = "Get board by ID")
-    public ResponseEntity<BoardResponse> getBoardById(@PathVariable Long boardId) {
+    public ResponseEntity<BoardResponse> getBoardById(@PathVariable("boardId") Long boardId) {
         BoardResponse response = boardService.getBoardById(boardId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all boards by user")
-    public ResponseEntity<List<BoardResponse>> getUserBoards(@PathVariable Long userId) {
+    public ResponseEntity<List<BoardResponse>> getUserBoards(@PathVariable("userId") Long userId) {
         List<BoardResponse> response = boardService.getUserBoards(userId);
         return ResponseEntity.ok(response);
     }
@@ -54,7 +54,7 @@ public class BoardController {
     @PutMapping("/{boardId}")
     @Operation(summary = "Update board")
     public ResponseEntity<BoardResponse> updateBoard(
-            @PathVariable Long boardId,
+            @PathVariable("boardId") Long boardId,
             @RequestBody BoardRequest request,
             @RequestHeader("X-User-Id") Long userId) {
         BoardResponse response = boardService.updateBoard(boardId, request, userId);
@@ -64,13 +64,9 @@ public class BoardController {
     @DeleteMapping("/{boardId}")
     @Operation(summary = "Delete board")
     public ResponseEntity<Void> deleteBoard(
-            @PathVariable Long boardId,
+            @PathVariable("boardId") Long boardId,
             @RequestHeader("X-User-Id") Long userId) {
         boardService.deleteBoard(boardId, userId);
         return ResponseEntity.noContent().build();
     }
 }
-
-
-
-

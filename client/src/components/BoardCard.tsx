@@ -27,9 +27,9 @@ const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
           overflow: 'hidden',
         }}
       >
-        {board.coverImages.length > 0 && (
+        {board.coverImage ? (
           <img
-            src={board.coverImages[0]}
+            src={board.coverImage}
             alt={board.name}
             style={{
               width: '100%',
@@ -37,6 +37,10 @@ const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
               objectFit: 'cover',
             }}
           />
+        ) : (
+          <div className="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary text-white">
+            <span style={{ fontSize: '2rem' }}>{board.name.charAt(0).toUpperCase()}</span>
+          </div>
         )}
         {board.isPrivate && (
           <div

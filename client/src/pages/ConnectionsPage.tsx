@@ -1,118 +1,134 @@
-import React, { useState } from 'react';
-import { Container, Nav, Form, Card, Image, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Nav, Form, Card, Image, Button, Spinner, Alert } from 'react-bootstrap';
 import { MoreVertical, UserMinus, UserPlus } from 'lucide-react';
+import { useConnections } from '../contexts/ConnectionContext';
+import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
+import { ConnectionResponse, UserResponse } from '../types';
 
-interface Connection {
-  id: string;
-  name: string;
-  username: string;
-  bio: string;
-  avatar: string;
+interface ConnectionUI extends UserResponse {
+  connectionId: number; // ID of the connection record
   isFollowing: boolean;
 }
 
-const mockFollowers: Connection[] = [
-  {
-    id: '1',
-    name: 'Alex Chen',
-    username: '@alex_c',
-    bio: 'Travel photographer | Capturing moments around the world',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-    isFollowing: false,
-  },
-  {
-    id: '2',
-    name: 'Maria Garcia',
-    username: '@maria_gar',
-    bio: 'Food blogger & recipe creator',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-    isFollowing: false,
-  },
-  {
-    id: '3',
-    name: 'James Park',
-    username: '@james_p',
-    bio: 'Fashion enthusiast',
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
-    isFollowing: true,
-  },
-  {
-    id: '4',
-    name: 'Olivia Martinez',
-    username: '@olivia_mart',
-    bio: 'Plant mom 🌿 | Green living advocate',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200',
-    isFollowing: false,
-  },
-];
-
-const mockFollowing: Connection[] = [
-  {
-    id: '5',
-    name: 'Alex Chen',
-    username: '@alex_c',
-    bio: 'Travel photographer | Capturing moments around the world',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-    isFollowing: true,
-  },
-  {
-    id: '6',
-    name: 'Maria Garcia',
-    username: '@maria_gar',
-    bio: 'Food blogger & recipe creator',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-    isFollowing: true,
-  },
-  {
-    id: '7',
-    name: 'Emma Wilson',
-    username: '@emma_wil',
-    bio: 'Nature lover | Outdoor adventures',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-    isFollowing: true,
-  },
-  {
-    id: '8',
-    name: 'Olivia Martinez',
-    username: '@olivia_mart',
-    bio: 'Plant mom 🌿 | Green living advocate',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200',
-    isFollowing: true,
-  },
-];
-
 const ConnectionsPage: React.FC = () => {
+  const { user } = useAuth();
+  const { followers, following, fetchFollowers, fetchFollowing, followUser, unfollowUser, isLoading: isConnLoading, error: connError } = useConnections();
   const [activeTab, setActiveTab] = useState<'followers' | 'following'>('followers');
-  const [followers, setFollowers] = useState(mockFollowers);
-  const [following, setFollowing] = useState(mockFollowing);
+  const [enrichedFollowers, setEnrichedFollowers] = useState<ConnectionUI[]>([]);
+  const [enrichedFollowing, setEnrichedFollowing] = useState<ConnectionUI[]>([]);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleFollowToggle = (id: string, list: 'followers' | 'following') => {
-    if (list === 'followers') {
-      setFollowers(
-        followers.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
-        )
-      );
-    } else {
-      setFollowing(
-        following.map((user) =>
-          user.id === id ? { ...user, isFollowing: !user.isFollowing } : user
-        )
-      );
+  useEffect(() => {
+    if (user?.id) {
+      fetchFollowers(user.id);
+      fetchFollowing(user.id);
+    }
+  }, [user?.id, fetchFollowers, fetchFollowing]);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      setIsLoadingDetails(true);
+      try {
+        // Enrich Followers
+        if (followers.length > 0) {
+          const enrichedFollowersData = await Promise.all(
+            followers.map(async (conn) => {
+              try {
+                const profile = await authService.getProfile(conn.followerId);
+                // Check if I am following them back
+                // This is a bit complex without a direct "isFollowing" check from backend
+                // For now, check if they are in my following list
+                const isFollowingBack = following.some(f => f.followingId === conn.followerId);
+                return { ...profile, connectionId: conn.id, isFollowing: isFollowingBack };
+              } catch (e) {
+                console.error(`Failed to fetch profile for follower ${conn.followerId}`, e);
+                return null;
+              }
+            })
+          );
+          setEnrichedFollowers(enrichedFollowersData.filter((u): u is ConnectionUI => u !== null));
+        } else {
+          setEnrichedFollowers([]);
+        }
+
+        // Enrich Following
+        if (following.length > 0) {
+          const enrichedFollowingData = await Promise.all(
+            following.map(async (conn) => {
+              try {
+                const profile = await authService.getProfile(conn.followingId);
+                return { ...profile, connectionId: conn.id, isFollowing: true };
+              } catch (e) {
+                console.error(`Failed to fetch profile for following ${conn.followingId}`, e);
+                return null;
+              }
+            })
+          );
+          setEnrichedFollowing(enrichedFollowingData.filter((u): u is ConnectionUI => u !== null));
+        } else {
+          setEnrichedFollowing([]);
+        }
+
+      } catch (error) {
+        console.error('Error fetching connection details:', error);
+      } finally {
+        setIsLoadingDetails(false);
+      }
+    };
+
+    if (!isConnLoading) {
+      fetchDetails();
+    }
+  }, [followers, following, isConnLoading]);
+
+  const handleFollowToggle = async (userId: number, isFollowing: boolean) => {
+    try {
+      if (isFollowing) {
+        await unfollowUser(userId);
+        // Update local state
+        setEnrichedFollowing(prev => prev.filter(u => u.id !== userId));
+        setEnrichedFollowers(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: false } : u));
+      } else {
+        await followUser(userId);
+        // Update local state - re-fetch would be better but expensive
+        // Ideally we add to following list
+        const userToFollow = enrichedFollowers.find(u => u.id === userId);
+        if (userToFollow) {
+          setEnrichedFollowing(prev => [...prev, { ...userToFollow, isFollowing: true }]);
+          setEnrichedFollowers(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: true } : u));
+        }
+      }
+    } catch (error) {
+      alert('Failed to update connection');
     }
   };
 
-  const filteredConnections = (activeTab === 'followers' ? followers : following).filter(
+  const currentList = activeTab === 'followers' ? enrichedFollowers : enrichedFollowing;
+
+  const filteredConnections = currentList.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.firstName + ' ' + user.lastName).toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const isLoading = isConnLoading || isLoadingDetails;
+
+  if (isLoading && currentList.length === 0) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <Container style={{ maxWidth: '800px', marginTop: '80px' }}>
       {/* Header */}
       <h4 className="mb-4">Connections</h4>
+
+      {connError && <Alert variant="danger">{connError}</Alert>}
 
       {/* Tabs */}
       <div className="mb-4">
@@ -127,7 +143,7 @@ const ConnectionsPage: React.FC = () => {
                 color: activeTab === 'followers' ? '#000' : '#4a5565',
               }}
             >
-              Followers ({followers.length})
+              Followers ({enrichedFollowers.length})
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
@@ -140,7 +156,7 @@ const ConnectionsPage: React.FC = () => {
                 color: activeTab === 'following' ? '#000' : '#4a5565',
               }}
             >
-              Following ({following.length})
+              Following ({enrichedFollowing.length})
             </Nav.Link>
           </Nav.Item>
         </Nav>
@@ -181,15 +197,15 @@ const ConnectionsPage: React.FC = () => {
                     style={{
                       width: '100%',
                       height: '100%',
-                      backgroundImage: `url(${user.avatar})`,
+                      backgroundImage: `url(${user.avatar || '/default-avatar.svg'})`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                     }}
                   />
                 </div>
                 <div className="flex-grow-1">
-                  <h6 className="mb-0">{user.name}</h6>
-                  <small className="text-muted d-block">{user.username}</small>
+                  <h6 className="mb-0">{user.firstName} {user.lastName}</h6>
+                  <small className="text-muted d-block">@{user.username}</small>
                   <small className="text-muted">{user.bio}</small>
                 </div>
                 <div className="d-flex gap-2 align-items-center">
@@ -197,7 +213,7 @@ const ConnectionsPage: React.FC = () => {
                     variant={user.isFollowing ? 'light' : 'danger'}
                     size="sm"
                     className="rounded-pill d-flex align-items-center gap-2"
-                    onClick={() => handleFollowToggle(user.id, activeTab)}
+                    onClick={() => handleFollowToggle(user.id, user.isFollowing)}
                     style={{
                       backgroundColor: user.isFollowing ? '#efefef' : '#e60023',
                       borderColor: user.isFollowing ? '#efefef' : '#e60023',

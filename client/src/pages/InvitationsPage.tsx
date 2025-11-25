@@ -1,108 +1,87 @@
-import React, { useState } from 'react';
-import { Container, Card, Image, Button, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Card, Image, Button, Badge, Spinner, Alert } from 'react-bootstrap';
 import { Users, UserPlus, CheckCircle, XCircle } from 'lucide-react';
+import { useInvitations } from '../contexts/InvitationContext';
+import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
+import { InvitationResponse, UserResponse } from '../types';
 
-interface Invitation {
-  id: string;
-  type: 'board_collaboration' | 'connection';
-  from: {
-    id: string;
-    username: string;
-    firstName: string;
-    lastName: string;
-    avatar: string;
-  };
-  boardName?: string;
-  message?: string;
-  timestamp: string;
+interface InvitationUI extends InvitationResponse {
+  inviter?: UserResponse;
 }
-
-interface PastInvitation {
-  id: string;
-  from: {
-    name: string;
-    avatar: string;
-  };
-  type: string;
-  timestamp: string;
-  status: 'accepted' | 'declined';
-}
-
-const mockInvitations: Invitation[] = [
-  {
-    id: '1',
-    type: 'board_collaboration',
-    from: {
-      id: '2',
-      username: 'mariag',
-      firstName: 'Maria',
-      lastName: 'Garcia',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-    },
-    boardName: 'Recipe Collection',
-    message: 'Would love to have you collaborate on our recipe board!',
-    timestamp: '366d ago',
-  },
-  {
-    id: '2',
-    type: 'connection',
-    from: {
-      id: '3',
-      username: 'michaelb',
-      firstName: 'Michael',
-      lastName: 'Brown',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-    },
-    message: 'Love your design work! Let\'s connect.',
-    timestamp: '365d ago',
-  },
-];
-
-const mockPastInvitations: PastInvitation[] = [
-  {
-    id: 'p1',
-    from: {
-      name: 'David Kim',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200',
-    },
-    type: 'Board collaboration',
-    timestamp: '367d ago',
-    status: 'accepted',
-  },
-  {
-    id: 'p2',
-    from: {
-      name: 'Lisa Thompson',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-    },
-    type: 'Connection request',
-    timestamp: '368d ago',
-    status: 'declined',
-  },
-];
 
 const InvitationsPage: React.FC = () => {
-  const [invitations, setInvitations] = useState(mockInvitations);
-  const [pastInvitations] = useState(mockPastInvitations);
+  const { user } = useAuth();
+  const { invitations, fetchInvitations, respondToInvitation, isLoading: isInvLoading, error: invError } = useInvitations();
+  const [enrichedInvitations, setEnrichedInvitations] = useState<InvitationUI[]>([]);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
-  const handleAccept = (invitationId: string) => {
-    const invitation = invitations.find(inv => inv.id === invitationId);
-    if (invitation) {
-      if (invitation.type === 'board_collaboration') {
-        console.log(`Accepting board collaboration for ${invitation.boardName}`);
-        alert(`You are now a collaborator on "${invitation.boardName}"!`);
+  useEffect(() => {
+    if (user?.id) {
+      fetchInvitations(user.id);
+    }
+  }, [user?.id, fetchInvitations]);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      if (invitations.length > 0) {
+        setIsLoadingDetails(true);
+        try {
+          const enriched = await Promise.all(
+            invitations.map(async (inv) => {
+              try {
+                const inviter = await authService.getProfile(inv.inviterId);
+                return { ...inv, inviter };
+              } catch (e) {
+                console.error(`Failed to fetch inviter details for ${inv.inviterId}`, e);
+                return inv;
+              }
+            })
+          );
+          setEnrichedInvitations(enriched);
+        } catch (error) {
+          console.error('Error fetching invitation details:', error);
+        } finally {
+          setIsLoadingDetails(false);
+        }
       } else {
-        console.log(`Accepting connection from ${invitation.from.username}`);
-        alert(`You are now connected with ${invitation.from.firstName}!`);
+        setEnrichedInvitations([]);
       }
-      setInvitations(invitations.filter(inv => inv.id !== invitationId));
+    };
+
+    fetchDetails();
+  }, [invitations]);
+
+  const handleAccept = async (invitationId: number) => {
+    try {
+      await respondToInvitation(invitationId, 'ACCEPTED');
+      alert('Invitation accepted!');
+    } catch (error) {
+      alert('Failed to accept invitation');
     }
   };
 
-  const handleDecline = (invitationId: string) => {
-    console.log(`Declining invitation ${invitationId}`);
-    setInvitations(invitations.filter(inv => inv.id !== invitationId));
+  const handleDecline = async (invitationId: number) => {
+    try {
+      await respondToInvitation(invitationId, 'DECLINED');
+      alert('Invitation declined');
+    } catch (error) {
+      alert('Failed to decline invitation');
+    }
   };
+
+  const pendingInvitations = enrichedInvitations.filter(inv => inv.status === 'PENDING');
+  const pastInvitations = enrichedInvitations.filter(inv => inv.status !== 'PENDING');
+
+  const isLoading = isInvLoading || isLoadingDetails;
+
+  if (isLoading && enrichedInvitations.length === 0) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <Container className="py-4" style={{ maxWidth: '900px', marginTop: '80px' }}>
@@ -111,13 +90,15 @@ const InvitationsPage: React.FC = () => {
         <h4 className="mb-0">Invitations & Notifications</h4>
       </div>
 
+      {invError && <Alert variant="danger">{invError}</Alert>}
+
       {/* Pending Invitations Section */}
       <div className="mb-5">
         <h5 className="mb-3">Pending Invitations</h5>
 
-        {invitations.length > 0 ? (
+        {pendingInvitations.length > 0 ? (
           <div className="d-flex flex-column gap-3">
-            {invitations.map((invitation) => (
+            {pendingInvitations.map((invitation) => (
               <Card key={invitation.id} className="border" style={{ borderRadius: '16px', borderColor: '#e1e1e1' }}>
                 <Card.Body className="p-4">
                   <div className="d-flex gap-3">
@@ -135,7 +116,7 @@ const InvitationsPage: React.FC = () => {
                         style={{
                           width: '100%',
                           height: '100%',
-                          backgroundImage: `url(${invitation.from.avatar})`,
+                          backgroundImage: `url(${invitation.inviter?.avatar || '/default-avatar.svg'})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
                         }}
@@ -143,17 +124,16 @@ const InvitationsPage: React.FC = () => {
                     </div>
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-center gap-2 mb-2">
-                        {invitation.type === 'board_collaboration' ? (
+                        {invitation.invitationType === 'BOARD_COLLABORATION' ? (
                           <Users size={20} style={{ color: '#155DFC' }} />
                         ) : (
                           <UserPlus size={20} style={{ color: '#155DFC' }} />
                         )}
                         <p className="mb-0" style={{ fontSize: '16px' }}>
-                          <strong>{invitation.from.firstName} {invitation.from.lastName}</strong>
-                          {invitation.type === 'board_collaboration' ? (
+                          <strong>{invitation.inviter?.firstName} {invitation.inviter?.lastName}</strong>
+                          {invitation.invitationType === 'BOARD_COLLABORATION' ? (
                             <>
-                              {' invited you to collaborate on '}
-                              <strong>"{invitation.boardName}"</strong>
+                              {' invited you to collaborate on a board'}
                             </>
                           ) : (
                             ' wants to connect with you'
@@ -161,22 +141,8 @@ const InvitationsPage: React.FC = () => {
                         </p>
                       </div>
 
-                      {invitation.message && (
-                        <div
-                          className="mb-3 p-3"
-                          style={{
-                            backgroundColor: '#f9fafb',
-                            borderRadius: '10px',
-                            fontSize: '14px',
-                            color: '#364153',
-                          }}
-                        >
-                          "{invitation.message}"
-                        </div>
-                      )}
-
                       <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted">{invitation.timestamp}</small>
+                        <small className="text-muted">{new Date(invitation.createdAt).toLocaleDateString()}</small>
                         <div className="d-flex gap-2">
                           <Button
                             variant="light"
@@ -251,7 +217,7 @@ const InvitationsPage: React.FC = () => {
                         style={{
                           width: '100%',
                           height: '100%',
-                          backgroundImage: `url(${invitation.from.avatar})`,
+                          backgroundImage: `url(${invitation.inviter?.avatar || '/default-avatar.svg'})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
                         }}
@@ -259,13 +225,13 @@ const InvitationsPage: React.FC = () => {
                     </div>
                     <div className="flex-grow-1">
                       <p className="mb-0" style={{ fontSize: '14px' }}>
-                        <strong>{invitation.from.name}</strong>
-                        <span className="text-muted ms-2">{invitation.type}</span>
+                        <strong>{invitation.inviter?.username}</strong>
+                        <span className="text-muted ms-2">{invitation.invitationType}</span>
                       </p>
-                      <small className="text-muted">{invitation.timestamp}</small>
+                      <small className="text-muted">{new Date(invitation.createdAt).toLocaleDateString()}</small>
                     </div>
                     <Badge
-                      bg={invitation.status === 'accepted' ? 'success' : 'secondary'}
+                      bg={invitation.status === 'ACCEPTED' ? 'success' : 'secondary'}
                       className="text-capitalize"
                       style={{
                         padding: '6px 12px',

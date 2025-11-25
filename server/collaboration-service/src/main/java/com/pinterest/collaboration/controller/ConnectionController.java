@@ -20,7 +20,7 @@ public class ConnectionController {
     @PostMapping("/follow/{followingId}")
     @Operation(summary = "Follow a user")
     public ResponseEntity<ConnectionResponse> followUser(
-            @PathVariable Long followingId,
+            @PathVariable("followingId") Long followingId,
             @RequestHeader("X-User-Id") Long followerId) {
         ConnectionResponse response = connectionService.followUser(followerId, followingId);
         return ResponseEntity.ok(response);
@@ -29,7 +29,7 @@ public class ConnectionController {
     @DeleteMapping("/unfollow/{followingId}")
     @Operation(summary = "Unfollow a user")
     public ResponseEntity<Void> unfollowUser(
-            @PathVariable Long followingId,
+            @PathVariable("followingId") Long followingId,
             @RequestHeader("X-User-Id") Long followerId) {
         connectionService.unfollowUser(followerId, followingId);
         return ResponseEntity.noContent().build();
@@ -37,19 +37,15 @@ public class ConnectionController {
 
     @GetMapping("/followers/{userId}")
     @Operation(summary = "Get user followers")
-    public ResponseEntity<List<ConnectionResponse>> getFollowers(@PathVariable Long userId) {
+    public ResponseEntity<List<ConnectionResponse>> getFollowers(@PathVariable("userId") Long userId) {
         List<ConnectionResponse> response = connectionService.getFollowers(userId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/following/{userId}")
     @Operation(summary = "Get users following")
-    public ResponseEntity<List<ConnectionResponse>> getFollowing(@PathVariable Long userId) {
+    public ResponseEntity<List<ConnectionResponse>> getFollowing(@PathVariable("userId") Long userId) {
         List<ConnectionResponse> response = connectionService.getFollowing(userId);
         return ResponseEntity.ok(response);
     }
 }
-
-
-
-

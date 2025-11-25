@@ -1,29 +1,26 @@
 import api from '../utils/api';
-
-export interface BusinessProfileRequest {
-  businessName: string;
-  description?: string;
-  website?: string;
-  logo?: string;
-}
+import { BusinessProfileRequest, BusinessProfileResponse } from '../types';
 
 export const businessService = {
-  createProfile: async (data: BusinessProfileRequest) => {
-    const response = await api.post('/business/profiles', data);
+  async createBusinessProfile(profileData: BusinessProfileRequest): Promise<BusinessProfileResponse> {
+    const response = await api.post<BusinessProfileResponse>('/business/profiles', profileData);
     return response.data;
   },
 
-  getAllProfiles: async () => {
-    const response = await api.get('/business/profiles');
+  async getAllBusinessProfiles(): Promise<BusinessProfileResponse[]> {
+    const response = await api.get<BusinessProfileResponse[]>('/business/profiles');
     return response.data;
   },
 
-  getProfile: async (businessId: number) => {
-    const response = await api.get(`/business/profiles/${businessId}`);
+  async getBusinessProfile(businessId: string): Promise<BusinessProfileResponse> {
+    const response = await api.get<BusinessProfileResponse>(`/business/profiles/${businessId}`);
+    return response.data;
+  },
+
+  async updateBusinessProfile(businessId: string, profileData: BusinessProfileRequest): Promise<BusinessProfileResponse> {
+    const response = await api.put<BusinessProfileResponse>(`/business/profiles/${businessId}`, profileData);
     return response.data;
   },
 };
 
-
-
-
+export default businessService;

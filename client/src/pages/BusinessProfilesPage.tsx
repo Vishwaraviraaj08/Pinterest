@@ -1,77 +1,58 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Image, Button, Badge, Form, Nav } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Image, Button, Badge, Form, Nav, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Search, Briefcase, CheckCircle } from 'lucide-react';
+import { businessService } from '../services/businessService';
+import { BusinessProfileResponse } from '../types';
 
-interface BusinessProfile {
-  id: string;
-  name: string;
-  username: string;
-  logo: string;
-  description: string;
-  website: string;
-  category: string;
+interface BusinessProfileUI extends BusinessProfileResponse {
   followers: number;
   pins: number;
   isFollowing: boolean;
   isVerified: boolean;
+  category: string;
 }
-
-const mockBusinessProfiles: BusinessProfile[] = [
-  {
-    id: 'b1',
-    name: 'Home Decor Studio',
-    username: '@homedecor_stu',
-    logo: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=200',
-    description: 'Premium home decor and interior design inspiration',
-    website: 'https://www.homedecor.com',
-    category: 'Home & Garden',
-    followers: 45000,
-    pins: 15000,
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: 'b2',
-    name: 'Fashion Forward',
-    username: '@fashion_forw',
-    logo: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=200',
-    description: 'Latest fashion trends and style inspiration',
-    website: 'https://www.fashionforward.com',
-    category: 'Fashion',
-    followers: 128000,
-    pins: 22000,
-    isFollowing: false,
-    isVerified: true,
-  },
-  {
-    id: 'b3',
-    name: 'Culinary Creations',
-    username: '@culinary_creati',
-    logo: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200',
-    description: 'Gourmet recipes and cooking inspiration',
-    website: 'https://www.culinarycreations.com',
-    category: 'Food & Drink',
-    followers: 92000,
-    pins: 35000,
-    isFollowing: false,
-    isVerified: true,
-  },
-];
 
 const BusinessProfilesPage: React.FC = () => {
   const navigate = useNavigate();
-  const [businesses, setBusinesses] = useState(mockBusinessProfiles);
+  const [businesses, setBusinesses] = useState<BusinessProfileUI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeTab, setActiveTab] = useState<'sponsored' | 'profiles'>('profiles');
 
   const categories = ['all', 'Home & Garden', 'Food & Drink', 'Fashion', 'Beauty', 'Technology'];
 
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      setIsLoading(true);
+      try {
+        const data = await businessService.getAllBusinessProfiles();
+        // Transform API data to UI data with mock values for missing fields
+        const uiData: BusinessProfileUI[] = data.map(profile => ({
+          ...profile,
+          followers: Math.floor(Math.random() * 10000), // Mock
+          pins: Math.floor(Math.random() * 500), // Mock
+          isFollowing: false, // Mock
+          isVerified: Math.random() > 0.5, // Mock
+          category: categories[Math.floor(Math.random() * (categories.length - 1)) + 1], // Mock random category
+        }));
+        setBusinesses(uiData);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load business profiles');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBusinesses();
+  }, []);
+
   const handleFollowToggle = (businessId: string) => {
     setBusinesses(
       businesses.map((business) =>
-        business.id === businessId
+        business.id.toString() === businessId
           ? { ...business, isFollowing: !business.isFollowing }
           : business
       )
@@ -80,11 +61,19 @@ const BusinessProfilesPage: React.FC = () => {
 
   const filteredBusinesses = businesses.filter((business) => {
     const matchesSearch =
-      business.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      business.description.toLowerCase().includes(searchQuery.toLowerCase());
+      business.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (business.description?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || business.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <Container className="py-4" style={{ marginTop: '80px' }}>
@@ -98,6 +87,8 @@ const BusinessProfilesPage: React.FC = () => {
           Discover inspiring content from businesses and explore sponsored pins
         </p>
       </div>
+
+      {error && <Alert variant="danger">{error}</Alert>}
 
       {/* Tabs */}
       <div className="mb-4">
@@ -214,24 +205,24 @@ const BusinessProfilesPage: React.FC = () => {
                           marginRight: '12px',
                         }}
                       >
-                        <div
+                        <img
+                          src={business.logo || '/default-avatar.svg'}
+                          alt={business.businessName}
                           style={{
                             width: '100%',
                             height: '100%',
-                            backgroundImage: `url(${business.logo})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
+                            objectFit: 'cover',
                           }}
                         />
                       </div>
                       <div className="flex-grow-1">
                         <div className="d-flex align-items-center gap-1 mb-1">
-                          <h6 className="mb-0">{business.name}</h6>
+                          <h6 className="mb-0">{business.businessName}</h6>
                           {business.isVerified && (
                             <CheckCircle size={16} color="#0074d9" fill="#0074d9" />
                           )}
                         </div>
-                        <small className="text-muted">{business.username}</small>
+                        {/* <small className="text-muted">{business.username}</small> */}
                       </div>
                     </div>
 
@@ -242,7 +233,7 @@ const BusinessProfilesPage: React.FC = () => {
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
                         <div>
-                          <strong>{(business.followers / 1000).toFixed(0)}k</strong>
+                          <strong>{(business.followers / 1000).toFixed(1)}k</strong>
                           <small className="text-muted ms-1">followers</small>
                         </div>
                       </div>
@@ -260,7 +251,7 @@ const BusinessProfilesPage: React.FC = () => {
                       <Button
                         variant={business.isFollowing ? 'light' : 'danger'}
                         className="rounded-pill flex-grow-1"
-                        onClick={() => handleFollowToggle(business.id)}
+                        onClick={() => handleFollowToggle(business.id.toString())}
                         style={{
                           backgroundColor: business.isFollowing ? '#efefef' : '#e60023',
                           borderColor: business.isFollowing ? '#efefef' : '#e60023',

@@ -1,30 +1,120 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button, Nav, Image, Modal, Form, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Button, Nav, Image, Modal, Form, Spinner } from 'react-bootstrap';
 import { Settings, Share2, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useParams } from 'react-router-dom';
-import { mockBoards, mockPins } from '../utils/mockData';
+import { usePins } from '../contexts/PinContext';
+import { useBoards } from '../contexts/BoardContext';
+import { useConnections } from '../contexts/ConnectionContext';
+import { useParams, useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
+import { collaborationService } from '../services/collaborationService';
+import { UserResponse } from '../types';
 import BoardCard from '../components/BoardCard';
 import PinCard from '../components/PinCard';
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams();
-  const { user, updateProfile } = useAuth();
+  const navigate = useNavigate();
+  const { user: currentUser, updateProfile } = useAuth();
+  const { pins, fetchUserPins, isLoading: pinsLoading } = usePins();
+  const { boards, fetchUserBoards, isLoading: boardsLoading } = useBoards();
+  const { following, followUser, unfollowUser, fetchFollowing } = useConnections();
+
+  const [profileUser, setProfileUser] = useState<UserResponse | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('created');
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    bio: user?.bio || '',
+    firstName: '',
+    lastName: '',
+    bio: '',
   });
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
 
-  const isOwnProfile = userId === user?.id;
-  const userPins = mockPins.filter(pin => pin.userId === userId);
+  const parsedUserId = userId ? parseInt(userId) : currentUser?.id;
+  const isOwnProfile = currentUser?.id === parsedUserId;
+  const isFollowing = following.some(f => f.followingId === parsedUserId);
+
+  useEffect(() => {
+    const loadProfileData = async () => {
+      if (!parsedUserId) return;
+
+      setLoading(true);
+      try {
+        // Fetch profile
+        if (isOwnProfile && currentUser) {
+          setProfileUser(currentUser);
+          setEditForm({
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+            bio: currentUser.bio || '',
+          });
+        } else {
+          const data = await authService.getProfile(parsedUserId);
+          setProfileUser(data);
+        }
+
+        // Fetch content
+        await Promise.all([
+          fetchUserPins(parsedUserId),
+          fetchUserBoards(parsedUserId),
+          currentUser && fetchFollowing(currentUser.id)
+        ]);
+
+        // Fetch counts separately to avoid context conflict
+        try {
+          const followersData = await collaborationService.getFollowers(parsedUserId);
+          setFollowersCount(followersData.length);
+          const followingData = await collaborationService.getFollowing(parsedUserId);
+          setFollowingCount(followingData.length);
+        } catch (e) {
+          console.error("Failed to fetch connection counts", e);
+        }
+
+      } catch (error) {
+        console.error('Failed to load profile data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfileData();
+  }, [parsedUserId, isOwnProfile, currentUser, fetchUserPins, fetchUserBoards, fetchFollowing]);
 
   const handleSaveProfile = () => {
     updateProfile(editForm);
     setShowEditModal(false);
+    // Optimistically update local state if it's own profile
+    if (isOwnProfile && profileUser) {
+      setProfileUser({ ...profileUser, ...editForm });
+    }
   };
+
+  const handleFollowToggle = async () => {
+    if (!parsedUserId) return;
+    try {
+      if (isFollowing) {
+        await unfollowUser(parsedUserId);
+        setFollowersCount(prev => Math.max(0, prev - 1));
+      } else {
+        await followUser(parsedUserId);
+        setFollowersCount(prev => prev + 1);
+      }
+      // Refresh following list
+      if (currentUser) fetchFollowing(currentUser.id);
+    } catch (error) {
+      console.error('Failed to toggle follow:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -32,36 +122,24 @@ const ProfilePage: React.FC = () => {
         {/* Profile Header */}
         <div className="text-center mb-4">
           <Image
-            src={user?.avatar}
+            src={profileUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileUser?.username}`}
             roundedCircle
             width={128}
             height={128}
             style={{ objectFit: 'cover', marginBottom: '16px', display: 'block', margin: '0 auto 16px auto' }}
           />
-          <h4 className="mb-1">{user?.firstName} {user?.lastName}</h4>
-          <p className="text-muted mb-2">@{user?.username}</p>
-          {user?.bio && <p className="mb-3">{user.bio}</p>}
-          
-          {/* Website Link */}
-          <a
-            href="https://www.sarahdesigns.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="d-inline-flex align-items-center gap-2 text-decoration-none mb-3"
-            style={{ color: '#364153' }}
-          >
-            <ExternalLink size={16} />
-            www.sarahdesigns.com
-          </a>
+          <h4 className="mb-1">{profileUser?.firstName} {profileUser?.lastName}</h4>
+          <p className="text-muted mb-2">@{profileUser?.username}</p>
+          {profileUser?.bio && <p className="mb-3">{profileUser.bio}</p>}
 
           {/* Stats */}
           <div className="d-flex justify-content-center gap-4 mb-4">
-            <div>
-              <strong style={{ fontSize: '16px' }}>{user?.followers.toLocaleString()}</strong>
+            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}`)}>
+              <strong style={{ fontSize: '16px' }}>{followersCount}</strong>
               <span className="text-muted ms-1" style={{ fontSize: '16px' }}>followers</span>
             </div>
-            <div>
-              <strong style={{ fontSize: '16px' }}>{user?.following}</strong>
+            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}`)}>
+              <strong style={{ fontSize: '16px' }}>{followingCount}</strong>
               <span className="text-muted ms-1" style={{ fontSize: '16px' }}>following</span>
             </div>
           </div>
@@ -80,37 +158,24 @@ const ProfilePage: React.FC = () => {
                   }}
                   onClick={() => setShowEditModal(true)}
                 >
-                  Follow
+                  Edit Profile
                 </Button>
                 <Button
                   variant="light"
                   className="rounded-circle"
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: '0',
-                    border: 'none',
-                  }}
+                  style={{ width: '36px', height: '36px', padding: '0', border: 'none' }}
                 >
                   <Share2 size={16} />
-                </Button>
-                <Button
-                  variant="light"
-                  className="rounded-circle"
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    padding: '0',
-                    border: 'none',
-                  }}
-                >
-                  <Settings size={16} />
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="danger" className="rounded-pill me-2">
-                  Follow
+                <Button
+                  variant={isFollowing ? "secondary" : "danger"}
+                  className="rounded-pill me-2"
+                  onClick={handleFollowToggle}
+                >
+                  {isFollowing ? 'Unfollow' : 'Follow'}
                 </Button>
                 <Button variant="light" className="rounded-pill">
                   <Share2 size={16} />
@@ -159,32 +224,42 @@ const ProfilePage: React.FC = () => {
           <>
             <div className="mb-4">
               <h5 className="mb-3">Boards</h5>
-              <Row>
-                {mockBoards.map((board) => (
-                  <Col key={board.id} xs={12} sm={6} md={3} className="mb-4">
-                    <BoardCard board={board} />
-                  </Col>
-                ))}
-              </Row>
+              {boardsLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : boards.length > 0 ? (
+                <Row>
+                  {boards.map((board) => (
+                    <Col key={board.id} xs={12} sm={6} md={3} className="mb-4">
+                      <BoardCard board={board} />
+                    </Col>
+                  ))}
+                </Row>
+              ) : (
+                <p className="text-muted">No boards created yet.</p>
+              )}
             </div>
 
             {/* Created Pins Section */}
             <div className="mb-4">
               <h5 className="mb-3">Created Pins</h5>
-              <div className="masonry-grid">
-                {userPins.slice(0, 4).map((pin) => (
-                  <PinCard key={pin.id} pin={pin} />
-                ))}
-              </div>
+              {pinsLoading ? (
+                <Spinner animation="border" size="sm" />
+              ) : pins.length > 0 ? (
+                <div className="masonry-grid">
+                  {pins.map((pin) => (
+                    <PinCard key={pin.id} pin={pin} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted">No pins created yet.</p>
+              )}
             </div>
           </>
         )}
 
         {activeTab === 'saved' && (
-          <div className="masonry-grid">
-            {mockPins.map((pin) => (
-              <PinCard key={pin.id} pin={pin} />
-            ))}
+          <div className="text-center py-5">
+            <p className="text-muted">Saved pins feature coming soon!</p>
           </div>
         )}
       </Container>

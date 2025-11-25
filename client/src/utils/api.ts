@@ -16,6 +16,18 @@ api.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Add X-User-Id header if user info is available in sessionStorage
+    const userJson = sessionStorage.getItem('user');
+    if (userJson && config.headers) {
+      try {
+        const user = JSON.parse(userJson);
+        if (user.id) {
+          config.headers['X-User-Id'] = user.id;
+        }
+      } catch (e) {
+        console.error('Failed to parse user from sessionStorage', e);
+      }
+    }
     return config;
   },
   (error) => {

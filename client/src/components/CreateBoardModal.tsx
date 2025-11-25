@@ -9,6 +9,7 @@ interface CreateBoardModalProps {
     description: string;
     isPrivate: boolean;
     isCollaborative: boolean;
+    coverImage?: string;
   }) => void;
 }
 
@@ -18,6 +19,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
     description: '',
     isPrivate: false,
     isCollaborative: false,
+    coverImage: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -28,6 +30,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
       description: '',
       isPrivate: false,
       isCollaborative: false,
+      coverImage: '',
     });
     onHide();
   };
@@ -89,6 +92,33 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
+          </Form.Group>
+
+          <Form.Group className="mb-4">
+            <Form.Label>Cover Image (Optional)</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setFormData({ ...formData, coverImage: reader.result as string });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
+            />
+            {formData.coverImage && (
+              <div className="mt-2" style={{ width: '100px', height: '100px' }}>
+                <img
+                  src={formData.coverImage}
+                  alt="Cover Preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
+                />
+              </div>
+            )}
           </Form.Group>
 
           <div className="d-flex gap-2">

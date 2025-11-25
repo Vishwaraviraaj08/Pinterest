@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button, Dropdown, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { Bookmark, MoreHorizontal, ExternalLink } from 'lucide-react';
-import { Pin } from '../types';
+import { Bookmark, MoreHorizontal, ExternalLink, Download } from 'lucide-react';
+import { Pin, Board } from '../types';
 import SaveToBoardModal from './SaveToBoardModal';
 import PinDetailModal from './PinDetailModal';
+import { contentService } from '../services/contentService';
 
 interface PinCardProps {
   pin: Pin;
@@ -14,14 +15,45 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
   const navigate = useNavigate();
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [userBoards, setUserBoards] = useState<Board[]>([]);
 
   const handlePinClick = () => {
     setShowDetailModal(true);
   };
 
-  const handleSave = (e: React.MouseEvent) => {
+  const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowSaveModal(true);
+    try {
+      const userStr = sessionStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const boards = await contentService.getUserBoards(user.id);
+        setUserBoards(boards);
+        setShowSaveModal(true);
+      } else {
+        // Redirect to login if not logged in
+        navigate('/login');
+      }
+    } catch (error) {
+      console.error('Failed to fetch boards:', error);
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(pin.imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `pin-${pin.id}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
   };
 
   return (
@@ -37,7 +69,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
               Sponsored
             </Badge>
           )}
-          
+
           {/* Top Actions */}
           <div className="pin-top-actions">
             <Button
@@ -63,7 +95,10 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
                   <ExternalLink size={16} className="me-2" />
                   Visit site
                 </Dropdown.Item>
-                <Dropdown.Item>Download image</Dropdown.Item>
+                <Dropdown.Item onClick={handleDownload}>
+                  <Download size={16} className="me-2" />
+                  Download image
+                </Dropdown.Item>
                 <Dropdown.Item>Hide Pin</Dropdown.Item>
                 <Dropdown.Item>Report</Dropdown.Item>
               </Dropdown.Menu>
@@ -71,7 +106,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
           </div>
 
           <img src={pin.imageUrl} alt={pin.title} loading="lazy" />
-          
+
           {/* Title Overlay at Bottom */}
           <div className="pin-title-overlay">
             <p className="mb-0" style={{ fontSize: '14px', fontWeight: '600' }}>
@@ -85,6 +120,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
         show={showSaveModal}
         onHide={() => setShowSaveModal(false)}
         pin={pin}
+        boards={userBoards}
       />
 
       <PinDetailModal

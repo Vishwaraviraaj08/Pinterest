@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button, Form, Image, Dropdown, Badge } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Button, Form, Image, Dropdown, Badge, Spinner, Alert } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Bookmark, ExternalLink, MoreHorizontal, Send, Edit, Trash } from 'lucide-react';
-import { mockPins } from '../utils/mockData';
 import { useAuth } from '../contexts/AuthContext';
+import { usePins } from '../contexts/PinContext';
+import { authService } from '../services/authService';
+import { UserResponse } from '../types';
 import SaveToBoardModal from '../components/SaveToBoardModal';
 
 const PinDetailPage: React.FC = () => {
   const { pinId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { selectedPin: pin, fetchPinById, deletePin, isLoading, error } = usePins();
+
+  const [creator, setCreator] = useState<UserResponse | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([
@@ -29,12 +34,38 @@ const PinDetailPage: React.FC = () => {
     },
   ]);
 
-  const pin = mockPins.find(p => p.id === pinId);
+  useEffect(() => {
+    if (pinId) {
+      fetchPinById(parseInt(pinId));
+    }
+  }, [pinId, fetchPinById]);
 
-  if (!pin) {
+  useEffect(() => {
+    const loadCreator = async () => {
+      if (pin?.userId) {
+        try {
+          const profile = await authService.getProfile(pin.userId);
+          setCreator(profile);
+        } catch (err) {
+          console.error('Failed to load pin creator:', err);
+        }
+      }
+    };
+    loadCreator();
+  }, [pin]);
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
+
+  if (error || !pin) {
     return (
       <Container className="py-5 text-center">
-        <h3>Pin not found</h3>
+        <h3>{error || 'Pin not found'}</h3>
         <Button variant="danger" onClick={() => navigate('/')}>
           Go to Home
         </Button>
@@ -50,8 +81,8 @@ const PinDetailPage: React.FC = () => {
       setComments([
         {
           id: Date.now().toString(),
-          username: 'currentuser',
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+          username: user?.username || 'currentuser',
+          avatar: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
           text: comment,
           timestamp: 'Just now',
         },
@@ -62,15 +93,18 @@ const PinDetailPage: React.FC = () => {
   };
 
   const handleEdit = () => {
-    // Navigate to edit page with pin data
     navigate(`/create-pin`, { state: { editPin: pin } });
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this pin?')) {
-      console.log('Deleting pin:', pin.id);
-      alert('Pin deleted successfully!');
-      navigate('/');
+      try {
+        await deletePin(pin.id);
+        navigate('/');
+      } catch (err) {
+        console.error('Failed to delete pin:', err);
+        alert('Failed to delete pin');
+      }
     }
   };
 
@@ -161,7 +195,7 @@ const PinDetailPage: React.FC = () => {
 
             <div className="d-flex align-items-center mb-4">
               <Image
-                src={pin.userAvatar}
+                src={creator?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${creator?.username}`}
                 roundedCircle
                 width={48}
                 height={48}
@@ -169,8 +203,8 @@ const PinDetailPage: React.FC = () => {
                 style={{ objectFit: 'cover' }}
               />
               <div className="flex-grow-1">
-                <div className="fw-semibold">{pin.username}</div>
-                <small className="text-muted">{pin.saves} saves</small>
+                <div className="fw-semibold">{creator?.username || 'Unknown User'}</div>
+                <small className="text-muted">{pin.savesCount || 0} saves</small>
               </div>
               {!isOwnPin && (
                 <Button variant="light" className="rounded-pill">
@@ -183,7 +217,7 @@ const PinDetailPage: React.FC = () => {
 
             <div className="mb-4">
               <h5 className="mb-3">{comments.length} Comments</h5>
-              
+
               <Form onSubmit={handleAddComment} className="mb-4">
                 <div className="d-flex gap-2">
                   <Form.Control
@@ -228,11 +262,13 @@ const PinDetailPage: React.FC = () => {
         </Row>
       </Container>
 
-      <SaveToBoardModal
-        show={showSaveModal}
-        onHide={() => setShowSaveModal(false)}
-        pin={pin}
-      />
+      {pin && (
+        <SaveToBoardModal
+          show={showSaveModal}
+          onHide={() => setShowSaveModal(false)}
+          pin={pin}
+        />
+      )}
     </>
   );
 };

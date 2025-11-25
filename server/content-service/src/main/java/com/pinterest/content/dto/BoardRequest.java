@@ -15,8 +15,6 @@ public class BoardRequest {
     private String description;
 
     private Boolean isPrivate = false;
+
+    private String coverImage;
 }
-
-
-
-

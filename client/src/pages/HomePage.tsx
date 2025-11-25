@@ -1,33 +1,16 @@
-import React from 'react';
-import { Container, Spinner } from 'react-bootstrap';
+import React, { useEffect } from 'react';
+import { Container, Spinner, Alert } from 'react-bootstrap';
 import PinCard from '../components/PinCard';
-import { mockPins } from '../utils/mockData';
-import { Pin } from '../types';
+import { usePins } from '../contexts/PinContext';
 
 const HomePage: React.FC = () => {
-  // In production, this would fetch pins from the Content Microservice
-  // Add some sponsored pins to the feed
-  const sponsoredPins: Pin[] = [
-    {
-      ...mockPins[2],
-      id: 'sponsored-1',
-      title: 'Sponsored: Premium Kitchen Collection',
-      isSponsored: true,
-    },
-    {
-      ...mockPins[7],
-      id: 'sponsored-2',
-      title: 'Sponsored: New Fashion Line',
-      isSponsored: true,
-    },
-  ];
+  const { pins, isLoading, error, fetchPublicPins } = usePins();
 
-  // Mix sponsored pins with regular pins
-  const allPins = [...mockPins];
-  allPins.splice(3, 0, sponsoredPins[0]);
-  allPins.splice(8, 0, sponsoredPins[1]);
+  useEffect(() => {
+    fetchPublicPins();
+  }, [fetchPublicPins]);
 
-  if (!allPins) {
+  if (isLoading && pins.length === 0) {
     return (
       <div className="loading-container">
         <Spinner animation="border" variant="danger" />
@@ -35,13 +18,30 @@ const HomePage: React.FC = () => {
     );
   }
 
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">
+          Error loading pins: {error}
+        </Alert>
+      </Container>
+    );
+  }
+
   return (
     <Container fluid style={{ padding: '20px' }}>
-      <div className="masonry-grid">
-        {allPins.map((pin) => (
-          <PinCard key={pin.id} pin={pin} />
-        ))}
-      </div>
+      {pins.length === 0 && !isLoading ? (
+        <div className="text-center mt-5">
+          <h3>No pins found</h3>
+          <p>Be the first to create a pin!</p>
+        </div>
+      ) : (
+        <div className="masonry-grid">
+          {pins.map((pin) => (
+            <PinCard key={pin.id} pin={pin} />
+          ))}
+        </div>
+      )}
     </Container>
   );
 };

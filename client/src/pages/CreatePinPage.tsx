@@ -1,31 +1,51 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Form, Button, Card, Badge, Modal } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Form, Button, Card, Badge, Modal, Spinner, Alert } from 'react-bootstrap';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Upload, Eye, Save, X } from 'lucide-react';
-import { mockBoards } from '../utils/mockData';
+import { usePins } from '../contexts/PinContext';
+import { useBoards } from '../contexts/BoardContext';
+import { useAuth } from '../contexts/AuthContext';
+import { PinRequest, PinResponse } from '../types';
 
 const CreatePinPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { createPin, updatePin, isLoading: isPinLoading } = usePins();
+  const { boards, fetchUserBoards, isLoading: isBoardsLoading } = useBoards();
+  const { user } = useAuth();
+
+  const editPin = location.state?.editPin as PinResponse | undefined;
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    link: '',
-    boardId: '',
-    keywords: [] as string[],
-    isPublic: true,
-    imageUrl: '',
+    title: editPin?.title || '',
+    description: editPin?.description || '',
+    link: editPin?.link || '',
+    boardId: editPin?.boardId?.toString() || '',
+    keywords: [] as string[], // Keywords not yet in backend DTO, keeping local for now
+    isPublic: editPin?.isPublic ?? true,
+    imageUrl: editPin?.imageUrl || '',
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const [imagePreview, setImagePreview] = useState<string | null>(editPin?.imageUrl || null);
   const [keywordInput, setKeywordInput] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserBoards(user.id);
+    }
+  }, [user?.id, fetchUserBoards]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const result = reader.result as string;
+        setImagePreview(result);
+        setFormData(prev => ({ ...prev, imageUrl: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -51,35 +71,76 @@ const CreatePinPage: React.FC = () => {
     });
   };
 
-  const handleSaveAsDraft = () => {
-    console.log('Saving pin as draft:', formData);
-    localStorage.setItem('pinDraft', JSON.stringify({ ...formData, imagePreview }));
-    alert('Pin saved as draft!');
-    navigate('/');
+  const handleSaveAsDraft = async () => {
+    // For now, saving as draft just means isDraft = true in the backend
+    // or we can keep using localStorage. Let's use backend with isDraft=true
+    try {
+      const pinData: PinRequest = {
+        title: formData.title,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        link: formData.link,
+        boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
+        isPublic: formData.isPublic,
+        isDraft: true,
+      };
+
+      if (editPin) {
+        await updatePin(editPin.id, pinData);
+      } else {
+        await createPin(pinData);
+      }
+      alert('Pin saved as draft!');
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save draft');
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock create pin - In production, this would call the Content Microservice
-    console.log('Creating pin:', formData);
-    localStorage.removeItem('pinDraft'); // Clear any draft
-    alert('Pin published successfully!');
-    navigate('/');
+    setError(null);
+
+    if (!formData.imageUrl) {
+      setError('Please upload an image');
+      return;
+    }
+
+    try {
+      const pinData: PinRequest = {
+        title: formData.title,
+        description: formData.description,
+        imageUrl: formData.imageUrl,
+        link: formData.link,
+        boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
+        isPublic: formData.isPublic,
+        isDraft: false,
+      };
+
+      if (editPin) {
+        await updatePin(editPin.id, pinData);
+        alert('Pin updated successfully!');
+      } else {
+        await createPin(pinData);
+        alert('Pin created successfully!');
+      }
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create pin');
+    }
   };
 
   const handlePreview = () => {
     setShowPreview(true);
   };
 
-  // Load draft on mount
-  React.useEffect(() => {
-    const draft = localStorage.getItem('pinDraft');
-    if (draft) {
-      const parsedDraft = JSON.parse(draft);
-      setFormData(parsedDraft);
-      setImagePreview(parsedDraft.imagePreview);
-    }
-  }, []);
+  if (isBoardsLoading && !boards.length) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -87,7 +148,7 @@ const CreatePinPage: React.FC = () => {
         <Row className="justify-content-center">
           <Col lg={10}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2>Create Pin</h2>
+              <h2>{editPin ? 'Edit Pin' : 'Create Pin'}</h2>
               <div className="d-flex gap-2">
                 <Button
                   variant="outline-secondary"
@@ -108,6 +169,8 @@ const CreatePinPage: React.FC = () => {
                 </Button>
               </div>
             </div>
+
+            {error && <Alert variant="danger">{error}</Alert>}
 
             <Form onSubmit={handleSubmit}>
               <Row>
@@ -147,7 +210,7 @@ const CreatePinPage: React.FC = () => {
                       <Form.Control
                         id="image-upload"
                         type="file"
-                        accept="image/*,video/*"
+                        accept="image/*"
                         onChange={handleImageUpload}
                         style={{ display: 'none' }}
                       />
@@ -226,16 +289,15 @@ const CreatePinPage: React.FC = () => {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
-                    <Form.Label>Board *</Form.Label>
+                    <Form.Label>Board</Form.Label>
                     <Form.Select
                       value={formData.boardId}
                       onChange={(e) =>
                         setFormData({ ...formData, boardId: e.target.value })
                       }
-                      required
                     >
-                      <option value="">Select a board</option>
-                      {mockBoards.map((board) => (
+                      <option value="">Select a board (optional)</option>
+                      {boards.map((board) => (
                         <option key={board.id} value={board.id}>
                           {board.name}
                         </option>
@@ -275,8 +337,9 @@ const CreatePinPage: React.FC = () => {
                       type="submit"
                       variant="danger"
                       className="rounded-pill px-4"
+                      disabled={isPinLoading}
                     >
-                      Publish
+                      {isPinLoading ? <Spinner animation="border" size="sm" /> : (editPin ? 'Update' : 'Publish')}
                     </Button>
                   </div>
                 </Col>
@@ -347,8 +410,8 @@ const CreatePinPage: React.FC = () => {
           <Button variant="secondary" onClick={() => setShowDraftConfirm(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={handleSaveAsDraft}>
-            Save Draft
+          <Button variant="danger" onClick={handleSaveAsDraft} disabled={isPinLoading}>
+            {isPinLoading ? <Spinner animation="border" size="sm" /> : 'Save Draft'}
           </Button>
         </Modal.Footer>
       </Modal>

@@ -28,7 +28,8 @@ public class Board {
     @Column(name = "is_private")
     private Boolean isPrivate = false;
 
-    @Column(name = "cover_image")
+    @Lob
+    @Column(name = "cover_image", columnDefinition = "LONGTEXT")
     private String coverImage;
 
     @Column(name = "created_at")
@@ -48,7 +49,3 @@ public class Board {
         updatedAt = LocalDateTime.now();
     }
 }
-
-
-
-

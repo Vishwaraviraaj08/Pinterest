@@ -1,37 +1,53 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Button, Spinner, Alert } from 'react-bootstrap';
 import { Plus } from 'lucide-react';
 import BoardCard from '../components/BoardCard';
 import CreateBoardModal from '../components/CreateBoardModal';
-import { mockBoards } from '../utils/mockData';
-import { Board } from '../types';
+import { useBoards } from '../contexts/BoardContext';
+import { useAuth } from '../contexts/AuthContext';
+import { BoardRequest } from '../types';
 
 const BoardsPage: React.FC = () => {
+  const { boards, fetchUserBoards, createBoard, isLoading, error } = useBoards();
+  const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [boards, setBoards] = useState(mockBoards);
 
-  const handleCreateBoard = (boardData: {
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserBoards(user.id);
+      console.log(boards);
+    }
+  }, [user?.id, fetchUserBoards]);
+
+  const handleCreateBoard = async (boardData: {
     name: string;
     description: string;
     isPrivate: boolean;
     isCollaborative: boolean;
+    coverImage?: string;
   }) => {
-    const newBoard: Board = {
-      id: Date.now().toString(),
-      name: boardData.name,
-      description: boardData.description,
-      userId: '1',
-      pins: [],
-      pinCount: 0,
-      isPrivate: boardData.isPrivate,
-      collaborators: boardData.isCollaborative ? [] : undefined,
-      coverImages: [],
-      createdAt: new Date().toISOString(),
-    };
-
-    setBoards([...boards, newBoard]);
-    console.log('Creating board:', boardData);
+    try {
+      const request: BoardRequest = {
+        name: boardData.name,
+        description: boardData.description,
+        isPrivate: boardData.isPrivate,
+        coverImage: boardData.coverImage,
+      };
+      await createBoard(request);
+      setShowCreateModal(false);
+    } catch (err) {
+      console.error('Failed to create board:', err);
+      // Error is handled by context and displayed via 'error' state if needed
+    }
   };
+
+  if (isLoading && boards.length === 0) {
+    return (
+      <div className="loading-container">
+        <Spinner animation="border" variant="danger" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -50,6 +66,12 @@ const BoardsPage: React.FC = () => {
           </Button>
         </div>
 
+        {error && (
+          <Alert variant="danger" className="mb-4">
+            {error}
+          </Alert>
+        )}
+
         {/* Boards Grid */}
         <Row>
           {boards.map((board) => (
@@ -59,7 +81,7 @@ const BoardsPage: React.FC = () => {
           ))}
         </Row>
 
-        {boards.length === 0 && (
+        {boards.length === 0 && !isLoading && (
           <div className="text-center py-5">
             <h5 className="mb-3">No boards yet</h5>
             <p className="text-muted mb-4">

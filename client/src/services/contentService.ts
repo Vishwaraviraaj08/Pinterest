@@ -1,85 +1,86 @@
 import api from '../utils/api';
-
-export interface PinRequest {
-  title: string;
-  description?: string;
-  imageUrl: string;
-  link?: string;
-  boardId?: number;
-  isPublic?: boolean;
-  isDraft?: boolean;
-}
-
-export interface BoardRequest {
-  name: string;
-  description?: string;
-  isPrivate?: boolean;
-}
+import { PinRequest, PinResponse, BoardRequest, BoardResponse } from '../types';
 
 export const contentService = {
   // Pins
-  createPin: async (data: PinRequest) => {
-    const response = await api.post('/content/pins', data);
+  createPin: async (data: PinRequest): Promise<PinResponse> => {
+    const response = await api.post<PinResponse>('/content/pins', data);
     return response.data;
   },
 
-  getPin: async (pinId: number) => {
-    const response = await api.get(`/content/pins/${pinId}`);
+  getPin: async (pinId: number): Promise<PinResponse> => {
+    const response = await api.get<PinResponse>(`/content/pins/${pinId}`);
     return response.data;
   },
 
-  getUserPins: async (userId: number) => {
-    const response = await api.get(`/content/pins/user/${userId}`);
+  getUserPins: async (userId: number): Promise<PinResponse[]> => {
+    const response = await api.get<PinResponse[]>(`/content/pins/user/${userId}`);
     return response.data;
   },
 
-  getPublicPins: async () => {
-    const response = await api.get('/content/pins/public');
+  getPublicPins: async (): Promise<PinResponse[]> => {
+    const response = await api.get<PinResponse[]>('/content/pins/public');
     return response.data;
   },
 
-  searchPins: async (keyword: string) => {
-    const response = await api.get(`/content/pins/search?keyword=${keyword}`);
+  searchPins: async (keyword: string): Promise<PinResponse[]> => {
+    const response = await api.get<PinResponse[]>(`/content/pins/search?keyword=${keyword}`);
     return response.data;
   },
 
-  updatePin: async (pinId: number, data: PinRequest) => {
-    const response = await api.put(`/content/pins/${pinId}`, data);
+  updatePin: async (pinId: number, data: PinRequest): Promise<PinResponse> => {
+    const response = await api.put<PinResponse>(`/content/pins/${pinId}`, data);
     return response.data;
   },
 
-  deletePin: async (pinId: number) => {
+  deletePin: async (pinId: number): Promise<void> => {
     await api.delete(`/content/pins/${pinId}`);
   },
 
   // Boards
-  createBoard: async (data: BoardRequest) => {
-    const response = await api.post('/content/boards', data);
+  createBoard: async (data: BoardRequest): Promise<BoardResponse> => {
+    const response = await api.post<BoardResponse>('/content/boards', data);
     return response.data;
   },
 
-  getBoard: async (boardId: number) => {
-    const response = await api.get(`/content/boards/${boardId}`);
+  getBoard: async (boardId: number): Promise<BoardResponse> => {
+    const response = await api.get<BoardResponse>(`/content/boards/${boardId}`);
     return response.data;
   },
 
-  getUserBoards: async (userId: number) => {
-    const response = await api.get(`/content/boards/user/${userId}`);
+  getUserBoards: async (userId: number): Promise<BoardResponse[]> => {
+    const response = await api.get<BoardResponse[]>(`/content/boards/user/${userId}`);
     return response.data;
   },
 
-  searchBoards: async (keyword: string) => {
-    const response = await api.get(`/content/boards/search?keyword=${keyword}`);
+  searchBoards: async (keyword: string): Promise<BoardResponse[]> => {
+    const response = await api.get<BoardResponse[]>(`/content/boards/search?keyword=${keyword}`);
     return response.data;
   },
 
-  updateBoard: async (boardId: number, data: BoardRequest) => {
-    const response = await api.put(`/content/boards/${boardId}`, data);
+  updateBoard: async (boardId: number, data: BoardRequest): Promise<BoardResponse> => {
+    const response = await api.put<BoardResponse>(`/content/boards/${boardId}`, data);
     return response.data;
   },
 
-  deleteBoard: async (boardId: number) => {
+  deleteBoard: async (boardId: number): Promise<void> => {
     await api.delete(`/content/boards/${boardId}`);
+  },
+
+  // Reports
+  createReport: async (data: { title: string; message: string; pinId: number }): Promise<void> => {
+    await api.post('/content/reports', data);
+  },
+
+  // Comments
+  getComments: async (pinId: number): Promise<any[]> => {
+    const response = await api.get<any[]>(`/content/comments/pin/${pinId}`);
+    return response.data;
+  },
+
+  createComment: async (data: { text: string; pinId: number }): Promise<any> => {
+    const response = await api.post<any>('/content/comments', data);
+    return response.data;
   },
 };
 

@@ -32,14 +32,14 @@ public class PinController {
 
     @GetMapping("/{pinId}")
     @Operation(summary = "Get pin by ID")
-    public ResponseEntity<PinResponse> getPinById(@PathVariable Long pinId) {
+    public ResponseEntity<PinResponse> getPinById(@PathVariable("pinId") Long pinId) {
         PinResponse response = pinService.getPinById(pinId);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all pins by user")
-    public ResponseEntity<List<PinResponse>> getUserPins(@PathVariable Long userId) {
+    public ResponseEntity<List<PinResponse>> getUserPins(@PathVariable("userId") Long userId) {
         List<PinResponse> response = pinService.getUserPins(userId);
         return ResponseEntity.ok(response);
     }
@@ -61,7 +61,7 @@ public class PinController {
     @PutMapping("/{pinId}")
     @Operation(summary = "Update pin")
     public ResponseEntity<PinResponse> updatePin(
-            @PathVariable Long pinId,
+            @PathVariable("pinId") Long pinId,
             @RequestBody PinRequest request,
             @RequestHeader("X-User-Id") Long userId) {
         PinResponse response = pinService.updatePin(pinId, request, userId);
@@ -71,13 +71,9 @@ public class PinController {
     @DeleteMapping("/{pinId}")
     @Operation(summary = "Delete pin")
     public ResponseEntity<Void> deletePin(
-            @PathVariable Long pinId,
+            @PathVariable("pinId") Long pinId,
             @RequestHeader("X-User-Id") Long userId) {
         pinService.deletePin(pinId, userId);
         return ResponseEntity.noContent().build();
     }
 }
-
-
-
-

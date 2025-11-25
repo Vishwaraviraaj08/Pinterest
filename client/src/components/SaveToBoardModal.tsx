@@ -1,32 +1,69 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, ListGroup } from 'react-bootstrap';
 import { Plus, Check } from 'lucide-react';
-import { Pin } from '../types';
-import { mockBoards } from '../utils/mockData';
+import { Pin, Board } from '../types';
+import { contentService } from '../services/contentService';
 
 interface SaveToBoardModalProps {
   show: boolean;
   onHide: () => void;
   pin: Pin;
+  boards: Board[];
 }
 
-const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin }) => {
+const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, boards }) => {
   const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = () => {
-    // Mock save functionality - In production, this would call the Content Microservice
-    console.log(`Saving pin ${pin.id} to board ${selectedBoard}`);
-    onHide();
+  const handleSave = async () => {
+    if (!selectedBoard) return;
+
+    setIsSaving(true);
+    try {
+      // Create a new pin instance for the selected board
+      await contentService.createPin({
+        title: pin.title,
+        description: pin.description,
+        imageUrl: pin.imageUrl,
+        link: pin.link,
+        boardId: Number(selectedBoard),
+        isPublic: pin.isPublic,
+      });
+      onHide();
+    } catch (error) {
+      console.error('Error saving pin:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleCreateBoard = () => {
+  const handleCreateBoard = async () => {
     if (newBoardName.trim()) {
-      console.log(`Creating new board: ${newBoardName}`);
-      setShowCreateBoard(false);
-      setNewBoardName('');
+      try {
+        const newBoard = await contentService.createBoard({ name: newBoardName });
+        // Automatically save to the new board
+        await contentService.createPin({
+          title: pin.title,
+          description: pin.description,
+          imageUrl: pin.imageUrl,
+          link: pin.link,
+          boardId: newBoard.id,
+          isPublic: pin.isPublic,
+        });
+        setShowCreateBoard(false);
+        setNewBoardName('');
+        onHide();
+      } catch (error) {
+        console.error('Error creating board:', error);
+      }
     }
+  };
+
+  const isPinSavedToBoard = (board: Board) => {
+    // Ensure pins array exists and check for pin ID match
+    return board.pins?.some(p => Number(p.id) === Number(pin.id)) ?? false;
   };
 
   return (
@@ -47,37 +84,53 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin }
             </Button>
 
             <ListGroup>
-              {mockBoards.map((board) => (
-                <ListGroup.Item
-                  key={board.id}
-                  action
-                  onClick={() => setSelectedBoard(board.id)}
-                  className="d-flex justify-content-between align-items-center"
-                >
-                  <div className="d-flex align-items-center">
-                    <div
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        marginRight: '12px',
-                      }}
-                    >
-                      <img
-                        src={board.coverImages[0]}
-                        alt={board.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+              {boards.map((board) => {
+                const isSaved = isPinSavedToBoard(board);
+                return (
+                  <ListGroup.Item
+                    key={board.id}
+                    action={!isSaved}
+                    onClick={() => !isSaved && setSelectedBoard(board.id.toString())}
+                    className="d-flex justify-content-between align-items-center"
+                    disabled={isSaved}
+                    style={{ opacity: isSaved ? 0.7 : 1, cursor: isSaved ? 'default' : 'pointer' }}
+                  >
+                    <div className="d-flex align-items-center">
+                      <div
+                        style={{
+                          width: '50px',
+                          height: '50px',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginRight: '12px',
+                          backgroundColor: '#efefef'
+                        }}
+                      >
+                        {board.coverImage ? (
+                          <img
+                            src={board.coverImage}
+                            alt={board.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center text-muted">
+                            No Img
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <div className="fw-semibold">{board.name}</div>
+                        <small className="text-muted">{board.pinCount} pins</small>
+                      </div>
                     </div>
-                    <div>
-                      <div className="fw-semibold">{board.name}</div>
-                      <small className="text-muted">{board.pinCount} pins</small>
-                    </div>
-                  </div>
-                  {selectedBoard === board.id && <Check size={20} color="green" />}
-                </ListGroup.Item>
-              ))}
+                    {isSaved ? (
+                      <span className="badge bg-secondary">Saved</span>
+                    ) : (
+                      selectedBoard === board.id.toString() && <Check size={20} color="green" />
+                    )}
+                  </ListGroup.Item>
+                );
+              })}
             </ListGroup>
           </>
         ) : (
@@ -117,9 +170,9 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin }
           <Button
             variant="danger"
             onClick={handleSave}
-            disabled={!selectedBoard}
+            disabled={!selectedBoard || isSaving}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </Modal.Footer>
       )}

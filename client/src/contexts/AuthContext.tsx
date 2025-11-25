@@ -1,14 +1,9 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { authService } from '../services/authService';
+import { UserResponse, RegisterRequest } from '../types';
 
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  bio?: string;
-  avatar?: string;
+// Extend UserResponse if we need extra frontend-only fields
+interface User extends UserResponse {
   followers: number;
   following: number;
 }
@@ -16,20 +11,11 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: RegisterData) => Promise<void>;
+  register: (userData: RegisterRequest) => Promise<void>;
   logout: () => void;
   updateProfile: (userData: Partial<User>) => void;
-}
-
-interface RegisterData {
-  email: string;
-  password: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  confirmPassword: string;
-  mobileNumber?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,6 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
       const response = await authService.login({ email, password });
       const token = response.token;
@@ -69,15 +56,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userProfile = await authService.getProfile(response.userId);
 
       const userData: User = {
-        id: response.userId.toString(),
-        email: userProfile.email,
-        username: userProfile.username,
-        firstName: userProfile.firstName || '',
-        lastName: userProfile.lastName || '',
-        bio: userProfile.bio,
-        avatar: userProfile.avatar,
-        followers: 0,
-        following: 0,
+        ...userProfile,
+        followers: 0, // TODO: Fetch real count
+        following: 0, // TODO: Fetch real count
       };
 
       setUser(userData);
@@ -85,20 +66,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sessionStorage.setItem('user', JSON.stringify(userData));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const register = async (userData: RegisterData) => {
+  const register = async (userData: RegisterRequest) => {
+    setIsLoading(true);
     try {
-      const response = await authService.register({
-        email: userData.email,
-        username: userData.username,
-        password: userData.password,
-        confirmPassword: userData.confirmPassword,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        mobileNumber: userData.mobileNumber,
-      });
+      const response = await authService.register(userData);
 
       const token = response.token;
       sessionStorage.setItem('token', token);
@@ -106,13 +82,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const userProfile = await authService.getProfile(response.userId);
 
       const newUser: User = {
-        id: response.userId.toString(),
-        email: userProfile.email,
-        username: userProfile.username,
-        firstName: userProfile.firstName || '',
-        lastName: userProfile.lastName || '',
-        bio: userProfile.bio,
-        avatar: userProfile.avatar,
+        ...userProfile,
         followers: 0,
         following: 0,
       };
@@ -122,6 +92,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       sessionStorage.setItem('user', JSON.stringify(newUser));
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -139,7 +111,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = async (userData: Partial<User>) => {
     if (user) {
       try {
-        const updated = await authService.updateProfile(parseInt(user.id), userData);
+        const updated = await authService.updateProfile(user.id, userData);
         const updatedUser = { ...user, ...updated };
         setUser(updatedUser);
         sessionStorage.setItem('user', JSON.stringify(updatedUser));
@@ -154,6 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         user,
         isAuthenticated,
+        isLoading,
         login,
         register,
         logout,

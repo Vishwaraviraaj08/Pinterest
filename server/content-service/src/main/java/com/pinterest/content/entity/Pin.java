@@ -22,7 +22,8 @@ public class Pin {
 
     private String description;
 
-    @Column(name = "image_url", nullable = false)
+    @Lob
+    @Column(name = "image_url", nullable = false, columnDefinition = "LONGTEXT")
     private String imageUrl;
 
     private String link;
@@ -65,7 +66,3 @@ public class Pin {
         updatedAt = LocalDateTime.now();
     }
 }
-
-
-
-
