@@ -49,6 +49,8 @@ spring:
       discovery:
         service-name: gateway-service
         enabled: true
+        prefer-ip-address: true
+        hostname: localhost
     loadbalancer:
       ribbon:
         enabled: false
