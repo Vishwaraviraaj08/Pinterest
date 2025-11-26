@@ -30,6 +30,11 @@ const TopNavbar: React.FC = () => {
     if (value.trim()) {
       try {
         const results = await contentService.searchPins(value);
+        console.log('Search results:', results);
+        results.forEach(pin => {
+          console.log(`Pin: ${pin.title}, BoardId: ${pin.boardId}, BoardName: '${pin.boardName}', Has BoardName: ${!!pin.boardName}`);
+        });
+        console.log('Raw first result:', JSON.stringify(results[0], null, 2));
         setSearchResults(results.slice(0, 5));
         setShowSearchSuggestions(true);
       } catch (error) {
@@ -122,7 +127,7 @@ const TopNavbar: React.FC = () => {
                   key={pin.id}
                   action
                   onClick={() => handleSelectPin(pin.id.toString())}
-                  className="d-flex gap-3 align-items-center cursor-pointer"
+                  className="d-flex gap-3 align-items-start cursor-pointer py-3"
                 >
                   <img
                     src={pin.imageUrl}
@@ -134,8 +139,13 @@ const TopNavbar: React.FC = () => {
                       borderRadius: '8px',
                     }}
                   />
-                  <div>
-                    <div style={{ fontWeight: '500' }}>{pin.title}</div>
+                  <div className="flex-grow-1">
+                    <div style={{ fontWeight: '500' }}>
+                      {pin.title}
+                      {pin.boardName && pin.boardName.trim() !== '' && (
+                        <span style={{ color: '#666', fontWeight: 'normal' }}> | {pin.boardName}</span>
+                      )}
+                    </div>
                     <small className="text-muted">{pin.description?.substring(0, 50)}...</small>
                   </div>
                 </ListGroup.Item>

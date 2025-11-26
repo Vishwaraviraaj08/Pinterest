@@ -69,4 +69,24 @@ public class BoardController {
         boardService.deleteBoard(boardId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{boardId}/pins/{pinId}")
+    @Operation(summary = "Add existing pin to board")
+    public ResponseEntity<BoardResponse> addPinToBoard(
+            @PathVariable("boardId") Long boardId,
+            @PathVariable("pinId") Long pinId,
+            @RequestHeader("X-User-Id") Long userId) {
+        BoardResponse response = boardService.addPinToBoard(boardId, pinId, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{boardId}/pins/{pinId}")
+    @Operation(summary = "Remove pin from board")
+    public ResponseEntity<Void> removePinFromBoard(
+            @PathVariable("boardId") Long boardId,
+            @PathVariable("pinId") Long pinId,
+            @RequestHeader("X-User-Id") Long userId) {
+        boardService.removePinFromBoard(boardId, pinId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

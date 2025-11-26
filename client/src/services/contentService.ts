@@ -72,6 +72,16 @@ export const contentService = {
     await api.delete(`/content/boards/${boardId}`);
   },
 
+  // Pin-Board Relationships
+  addPinToBoard: async (boardId: number, pinId: number): Promise<BoardResponse> => {
+    const response = await api.post<BoardResponse>(`/content/boards/${boardId}/pins/${pinId}`);
+    return response.data;
+  },
+
+  removePinFromBoard: async (boardId: number, pinId: number): Promise<void> => {
+    await api.delete(`/content/boards/${boardId}/pins/${pinId}`);
+  },
+
   // Reports
   createReport: async (data: { title: string; message: string; pinId: number }): Promise<void> => {
     await api.post('/content/reports', data);

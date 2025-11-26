@@ -1,7 +1,7 @@
 @echo off
 
 REM Add your microservice ports here
-set PORTS=8081 8082 8083 8084 8070 8761
+set PORTS=8080 8081 8082 8083 8084
 
 for %%P in (%PORTS%) do (
     echo Killing port %%P ...

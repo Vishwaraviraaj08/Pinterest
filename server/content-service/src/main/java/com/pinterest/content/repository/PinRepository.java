@@ -24,4 +24,6 @@ public interface PinRepository extends JpaRepository<Pin, Long> {
     @Query("SELECT DISTINCT p FROM Pin p WHERE p.isPublic = true AND p.isDraft = false AND " +
             "(p.title LIKE %:keyword% OR p.description LIKE %:keyword% OR p.keywords LIKE %:keyword%)")
     List<Pin> searchPins(@Param("keyword") String keyword);
+
+    boolean existsByBoardIdAndParentPinId(Long boardId, Long parentPinId);
 }

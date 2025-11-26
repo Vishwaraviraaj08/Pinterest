@@ -8,6 +8,7 @@ import { useBoards } from '../contexts/BoardContext';
 import { authService } from '../services/authService';
 import { UserResponse } from '../types';
 import { contentService } from '../services/contentService';
+import { collaborationService } from '../services/collaborationService';
 import SaveToBoardModal from '../components/SaveToBoardModal';
 
 interface CommentWithUser {
@@ -37,6 +38,8 @@ const PinDetailPage: React.FC = () => {
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState<CommentWithUser[]>([]);
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
 
   const fetchComments = async () => {
     if (!pinId) return;
@@ -92,13 +95,23 @@ const PinDetailPage: React.FC = () => {
         try {
           const profile = await authService.getProfile(pin.userId);
           setCreator(profile);
+          
+          // Check if current user is following the pin creator
+          if (user?.id && pin.userId !== user.id) {
+            try {
+              const following = await collaborationService.getFollowing(user.id);
+              setIsFollowing(following.some(f => f.followingId === pin.userId));
+            } catch (err) {
+              console.error('Failed to check follow status:', err);
+            }
+          }
         } catch (err) {
           console.error('Failed to load pin creator:', err);
         }
       }
     };
     loadCreator();
-  }, [pin]);
+  }, [pin, user]);
 
   if (isLoading) {
     return (
@@ -151,6 +164,26 @@ const PinDetailPage: React.FC = () => {
         console.error('Failed to delete pin:', err);
         alert('Failed to delete pin');
       }
+    }
+  };
+
+  const handleFollowToggle = async () => {
+    if (!pin?.userId || !user?.id) return;
+    
+    setIsFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await collaborationService.unfollowUser(pin.userId);
+        setIsFollowing(false);
+      } else {
+        await collaborationService.followUser(pin.userId);
+        setIsFollowing(true);
+      }
+    } catch (err) {
+      console.error('Failed to update follow status:', err);
+      alert('Failed to update follow status');
+    } finally {
+      setIsFollowLoading(false);
     }
   };
 
@@ -253,8 +286,13 @@ const PinDetailPage: React.FC = () => {
                 <small className="text-muted">{pin.savesCount || 0} saves</small>
               </div>
               {!isOwnPin && (
-                <Button variant="light" className="rounded-pill">
-                  Follow
+                <Button 
+                  variant={isFollowing ? "secondary" : "light"} 
+                  className="rounded-pill"
+                  onClick={handleFollowToggle}
+                  disabled={isFollowLoading}
+                >
+                  {isFollowLoading ? 'Loading...' : (isFollowing ? 'Unfollow' : 'Follow')}
                 </Button>
               )}
             </div>

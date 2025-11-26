@@ -83,4 +83,10 @@ public class PinController {
         pinService.deletePin(pinId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/debug/board-info")
+    @Operation(summary = "Debug endpoint to check board info")
+    public ResponseEntity<String> debugBoardInfo() {
+        return ResponseEntity.ok(pinService.debugBoardInfo());
+    }
 }

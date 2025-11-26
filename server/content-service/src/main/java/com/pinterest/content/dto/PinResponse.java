@@ -18,6 +18,7 @@ public class PinResponse {
     private String link;
     private Long userId;
     private Long boardId;
+    private String boardName;
     private Boolean isPublic;
     private Boolean isDraft;
     private Boolean isSponsored;

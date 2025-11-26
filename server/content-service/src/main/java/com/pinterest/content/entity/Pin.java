@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "pins")
@@ -39,9 +37,8 @@ public class Pin {
     @Column(name = "board_id")
     private Long boardId;
 
-    @ManyToMany
-    @JoinTable(name = "boards_pins", joinColumns = @JoinColumn(name = "pin_id"), inverseJoinColumns = @JoinColumn(name = "board_id"))
-    private Set<Board> boards = new HashSet<>();
+    // Removed many-to-many relationship to avoid circular reference issues
+    // Using simple boardId field instead
 
     @Column(name = "parent_pin_id")
     private Long parentPinId;

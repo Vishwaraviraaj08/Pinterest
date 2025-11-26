@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,13 +97,121 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
+    @Transactional
+    public BoardResponse addPinToBoard(Long boardId, Long pinId, Long userId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException("Board not found"));
+        
+        Pin pin = pinRepository.findById(pinId)
+                .orElseThrow(() -> new CustomException("Pin not found"));
+        
+        // Check if user has permission to add to this board
+        if (!board.getUserId().equals(userId)) {
+            throw new CustomException("You don't have permission to add pins to this board");
+        }
+        
+        // Check if this pin is already saved to this board
+        if (pin.getBoardId() != null && pin.getBoardId().equals(boardId)) {
+            throw new CustomException("Pin is already saved to this board");
+        }
+        
+        // Check if a copy of this pin already exists in this board
+        if (pinRepository.existsByBoardIdAndParentPinId(boardId, pinId)) {
+            throw new CustomException("Pin is already saved to this board");
+        }
+        
+        // For now, use the simple boardId approach instead of many-to-many
+        // Set the board ID on the pin if it's not already set to another board
+        if (pin.getBoardId() == null) {
+            pin.setBoardId(boardId);
+            pinRepository.save(pin);
+        } else {
+            // Create a copy of the pin for this board to avoid conflicts
+            Pin newPin = new Pin();
+            newPin.setTitle(pin.getTitle());
+            newPin.setDescription(pin.getDescription());
+            newPin.setImageUrl(pin.getImageUrl());
+            newPin.setLink(pin.getLink());
+            newPin.setUserId(userId);
+            newPin.setBoardId(boardId);
+            newPin.setIsPublic(pin.getIsPublic());
+            newPin.setIsDraft(false);
+            newPin.setIsSponsored(false);
+            newPin.setParentPinId(pin.getId());
+            newPin.setSavesCount(0);
+            newPin.setCommentsCount(0);
+            newPin.setKeywords(pin.getKeywords());
+            pinRepository.save(newPin);
+        }
+        
+        // Return simple board response without complex relationships
+        return getBoardById(boardId);
+    }
+
+    @Transactional
+    public void removePinFromBoard(Long boardId, Long pinId, Long userId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException("Board not found"));
+        
+        Pin pin = pinRepository.findById(pinId)
+                .orElseThrow(() -> new CustomException("Pin not found"));
+        
+        // Check if user has permission to modify this board
+        if (!board.getUserId().equals(userId)) {
+            throw new CustomException("You don't have permission to remove pins from this board");
+        }
+        
+        // Simple approach: if pin belongs to this board, remove the association
+        if (pin.getBoardId() != null && pin.getBoardId().equals(boardId)) {
+            pin.setBoardId(null);
+            pinRepository.save(pin);
+        }
+    }
+
     private BoardResponse mapToBoardResponse(Board board) {
-        BoardResponse response = modelMapper.map(board, BoardResponse.class);
+        BoardResponse response = new BoardResponse();
+        response.setId(board.getId());
+        response.setName(board.getName());
+        response.setDescription(board.getDescription());
+        response.setUserId(board.getUserId());
+        response.setIsPrivate(board.getIsPrivate());
+        response.setCoverImage(board.getCoverImage());
+        response.setCreatedAt(board.getCreatedAt());
+        response.setUpdatedAt(board.getUpdatedAt());
+        
+        // Use repository to get pins by boardId instead of accessing lazy collection
         List<Pin> pins = pinRepository.findByBoardId(board.getId());
         response.setPinCount(pins.size());
+        
         List<PinResponse> pinResponses = pins.stream()
-                .map(pin -> modelMapper.map(pin, PinResponse.class))
+                .map(pin -> {
+                    PinResponse pinResponse = new PinResponse();
+                    pinResponse.setId(pin.getId());
+                    pinResponse.setTitle(pin.getTitle());
+                    pinResponse.setDescription(pin.getDescription());
+                    pinResponse.setImageUrl(pin.getImageUrl());
+                    pinResponse.setLink(pin.getLink());
+                    pinResponse.setUserId(pin.getUserId());
+                    pinResponse.setBoardId(pin.getBoardId());
+                    pinResponse.setIsPublic(pin.getIsPublic());
+                    pinResponse.setIsDraft(pin.getIsDraft());
+                    pinResponse.setIsSponsored(pin.getIsSponsored());
+                    pinResponse.setSavesCount(pin.getSavesCount());
+                    pinResponse.setCommentsCount(pin.getCommentsCount());
+                    pinResponse.setCreatedAt(pin.getCreatedAt());
+                    pinResponse.setUpdatedAt(pin.getUpdatedAt());
+                    pinResponse.setParentPinId(pin.getParentPinId());
+                    
+                    // Handle keywords conversion
+                    if (pin.getKeywords() != null && !pin.getKeywords().isEmpty()) {
+                        pinResponse.setKeywords(List.of(pin.getKeywords().split(",")));
+                    } else {
+                        pinResponse.setKeywords(List.of());
+                    }
+                    return pinResponse;
+                })
                 .collect(Collectors.toList());
+        
         response.setPins(pinResponses);
         return response;
     }

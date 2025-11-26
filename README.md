@@ -443,7 +443,7 @@ Default configuration (update in `application.yml` if different):
 - **Username**: root
 - **Password**: root
 - **Host**: localhost
-- **Port**: 3306
+- **Port**: 3306show
 
 ### Running DDL Script
 

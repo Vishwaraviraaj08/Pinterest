@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, Form, ListGroup } from 'react-bootstrap';
+import { Modal, Button, Form, ListGroup, Alert } from 'react-bootstrap';
 import { Plus, Check } from 'lucide-react';
 import { Pin, Board } from '../types';
 import { contentService } from '../services/contentService';
@@ -16,25 +16,29 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSave = async () => {
     if (!selectedBoard) return;
 
     setIsSaving(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    
     try {
-      // Create a new pin instance for the selected board
-      await contentService.createPin({
-        title: pin.title,
-        description: pin.description,
-        imageUrl: pin.imageUrl,
-        link: pin.link,
-        boardId: Number(selectedBoard),
-        isPublic: pin.isPublic,
-        parentPinId: pin.parentPinId || pin.id, // If it's already a copy, use its parent. Otherwise, use its ID.
-      });
-      onHide();
-    } catch (error) {
-      console.error('Error saving pin:', error);
+      // Add existing pin to the selected board instead of creating a new pin
+      await contentService.addPinToBoard(Number(selectedBoard), pin.id);
+      setSuccessMessage('Pin saved successfully!');
+      setTimeout(() => {
+        onHide();
+      }, 1500);
+    } catch (error: any) {
+      if (error?.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage('Failed to save pin. Please try again.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -42,23 +46,25 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
 
   const handleCreateBoard = async () => {
     if (newBoardName.trim()) {
+      setErrorMessage(null);
+      setSuccessMessage(null);
+      
       try {
         const newBoard = await contentService.createBoard({ name: newBoardName });
-        // Automatically save to the new board
-        await contentService.createPin({
-          title: pin.title,
-          description: pin.description,
-          imageUrl: pin.imageUrl,
-          link: pin.link,
-          boardId: newBoard.id,
-          isPublic: pin.isPublic,
-          parentPinId: pin.parentPinId || pin.id,
-        });
-        setShowCreateBoard(false);
-        setNewBoardName('');
-        onHide();
-      } catch (error) {
-        console.error('Error creating board:', error);
+        // Add existing pin to the new board instead of creating a new pin
+        await contentService.addPinToBoard(newBoard.id, pin.id);
+        setSuccessMessage('Board created and pin saved successfully!');
+        setTimeout(() => {
+          setShowCreateBoard(false);
+          setNewBoardName('');
+          onHide();
+        }, 1500);
+      } catch (error: any) {
+        if (error?.response?.data?.message) {
+          setErrorMessage(error.response.data.message);
+        } else {
+          setErrorMessage('Failed to create board or save pin. Please try again.');
+        }
       }
     }
   };
@@ -68,12 +74,31 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
     return board.pins?.some(p => Number(p.id) === Number(pin.id)) ?? false;
   };
 
+  const handleClose = () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setSelectedBoard(null);
+    setShowCreateBoard(false);
+    setNewBoardName('');
+    onHide();
+  };
+
   return (
-    <Modal show={show} onHide={onHide} centered>
+    <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Save to board</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {errorMessage && (
+          <Alert variant="danger" className="mb-3">
+            {errorMessage}
+          </Alert>
+        )}
+        {successMessage && (
+          <Alert variant="success" className="mb-3">
+            {successMessage}
+          </Alert>
+        )}
         {!showCreateBoard ? (
           <>
             <Button
@@ -150,7 +175,11 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
             <div className="d-flex gap-2">
               <Button
                 variant="secondary"
-                onClick={() => setShowCreateBoard(false)}
+                onClick={() => {
+                  setShowCreateBoard(false);
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
               >
                 Cancel
               </Button>
@@ -166,7 +195,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
       </Modal.Body>
       {!showCreateBoard && (
         <Modal.Footer>
-          <Button variant="secondary" onClick={onHide}>
+          <Button variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
           <Button

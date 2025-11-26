@@ -58,6 +58,14 @@ CREATE TABLE IF NOT EXISTS pins (
     FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS boards_pins (
+    board_id BIGINT NOT NULL,
+    pin_id BIGINT NOT NULL,
+    PRIMARY KEY (board_id, pin_id),
+    FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE,
+    FOREIGN KEY (pin_id) REFERENCES pins(id) ON DELETE CASCADE
+);
+
 -- Database: pinterest_collaboration_db
 CREATE DATABASE IF NOT EXISTS pinterest_collaboration_db;
 USE pinterest_collaboration_db;

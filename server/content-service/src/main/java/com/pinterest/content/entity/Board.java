@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "boards")
@@ -40,8 +38,8 @@ public class Board {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToMany(mappedBy = "boards")
-    private Set<Pin> pins = new HashSet<>();
+    // Removed many-to-many relationship to avoid circular reference issues
+    // Using repository queries to get pins by boardId instead
 
     @PrePersist
     protected void onCreate() {

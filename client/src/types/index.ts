@@ -58,6 +58,7 @@ export interface PinResponse {
     link: string;
     userId: number;
     boardId: number;
+    boardName?: string;
     isPublic: boolean;
     isDraft: boolean;
     isSponsored: boolean;
