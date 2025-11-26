@@ -24,6 +24,8 @@ spring:
       discovery:
         service-name: user-authentication-service
         enabled: true
+        prefer-ip-address: true
+        hostname: localhost
 
 jwt:
   secret: pinterest-secret-key-for-jwt-token-generation-2024

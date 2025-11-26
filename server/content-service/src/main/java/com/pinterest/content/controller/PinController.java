@@ -60,7 +60,7 @@ public class PinController {
 
     @GetMapping("/search")
     @Operation(summary = "Search pins")
-    public ResponseEntity<List<PinResponse>> searchPins(@RequestParam String keyword) {
+    public ResponseEntity<List<PinResponse>> searchPins(@RequestParam("keyword") String keyword) {
         List<PinResponse> response = pinService.searchPins(keyword);
         return ResponseEntity.ok(response);
     }

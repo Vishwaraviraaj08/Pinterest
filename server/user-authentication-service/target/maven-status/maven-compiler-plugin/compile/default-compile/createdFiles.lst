@@ -1,9 +1,12 @@
 com\pinterest\auth\dto\UserResponse.class
 com\pinterest\auth\config\ModelMapperConfig.class
+com\pinterest\auth\dto\OtpVerificationRequest.class
+com\pinterest\auth\controller\OtpController.class
 com\pinterest\auth\dto\RegisterRequest.class
 com\pinterest\auth\repository\UserRepository.class
 com\pinterest\auth\exception\GlobalExceptionHandler.class
 com\pinterest\auth\config\SecurityConfig.class
+com\pinterest\auth\dto\OtpRequest.class
 com\pinterest\auth\service\UserService.class
 com\pinterest\auth\dto\AuthResponse.class
 com\pinterest\auth\UserAuthenticationServiceApplication.class

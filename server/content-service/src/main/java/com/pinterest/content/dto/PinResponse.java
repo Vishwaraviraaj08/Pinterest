@@ -26,4 +26,5 @@ public class PinResponse {
     private LocalDateTime createdAt;
     private List<String> keywords;
     private LocalDateTime updatedAt;
+    private Long parentPinId;
 }

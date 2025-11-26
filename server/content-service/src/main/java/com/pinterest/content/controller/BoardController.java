@@ -46,7 +46,7 @@ public class BoardController {
 
     @GetMapping("/search")
     @Operation(summary = "Search boards")
-    public ResponseEntity<List<BoardResponse>> searchBoards(@RequestParam String keyword) {
+    public ResponseEntity<List<BoardResponse>> searchBoards(@RequestParam("keyword") String keyword) {
         List<BoardResponse> response = boardService.searchBoards(keyword);
         return ResponseEntity.ok(response);
     }

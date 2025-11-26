@@ -40,7 +40,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         try {
             const data = await contentService.getUserBoards(userId);
             console.log("BoardContext", data)
-            setBoards(data);
+            setBoards(data || []);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch user boards');
         } finally {
@@ -66,7 +66,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setError(null);
         try {
             const data = await contentService.searchBoards(keyword);
-            setBoards(data);
+            setBoards(data || []);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to search boards');
         } finally {

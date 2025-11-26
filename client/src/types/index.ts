@@ -47,6 +47,7 @@ export interface PinRequest {
     isPublic?: boolean;
     isDraft?: boolean;
     keywords?: string[];
+    parentPinId?: number;
 }
 
 export interface PinResponse {
@@ -65,6 +66,7 @@ export interface PinResponse {
     createdAt: string;
     updatedAt: string;
     keywords?: string[];
+    parentPinId?: number;
 }
 
 export interface BoardResponse {

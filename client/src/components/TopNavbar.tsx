@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { Form, Image, ListGroup } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
+import { contentService } from '../services/contentService';
+import { PinResponse } from '../types';
 import ProfileDropdown from './ProfileDropdown';
-import { mockPins } from '../utils/mockData';
 
 const TopNavbar: React.FC = () => {
   const { user } = useAuth();
@@ -12,7 +13,7 @@ const TopNavbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [searchResults, setSearchResults] = useState<typeof mockPins>([]);
+  const [searchResults, setSearchResults] = useState<PinResponse[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -24,16 +25,16 @@ const TopNavbar: React.FC = () => {
     }
   };
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = async (value: string) => {
     setSearchQuery(value);
     if (value.trim()) {
-      const results = mockPins.filter(
-        (pin) =>
-          pin.title.toLowerCase().includes(value.toLowerCase()) ||
-          pin.description.toLowerCase().includes(value.toLowerCase())
-      );
-      setSearchResults(results.slice(0, 5));
-      setShowSearchSuggestions(true);
+      try {
+        const results = await contentService.searchPins(value);
+        setSearchResults(results.slice(0, 5));
+        setShowSearchSuggestions(true);
+      } catch (error) {
+        console.error('Failed to search pins:', error);
+      }
     } else {
       setShowSearchSuggestions(false);
     }
@@ -120,7 +121,7 @@ const TopNavbar: React.FC = () => {
                 <ListGroup.Item
                   key={pin.id}
                   action
-                  onClick={() => handleSelectPin(pin.id)}
+                  onClick={() => handleSelectPin(pin.id.toString())}
                   className="d-flex gap-3 align-items-center cursor-pointer"
                 >
                   <img
@@ -135,7 +136,7 @@ const TopNavbar: React.FC = () => {
                   />
                   <div>
                     <div style={{ fontWeight: '500' }}>{pin.title}</div>
-                    <small className="text-muted">{pin.description.substring(0, 50)}...</small>
+                    <small className="text-muted">{pin.description?.substring(0, 50)}...</small>
                   </div>
                 </ListGroup.Item>
               ))}

@@ -73,9 +73,12 @@ public class BoardService {
             throw new CustomException("You don't have permission to update this board");
         }
 
-        if (request.getName() != null) board.setName(request.getName());
-        if (request.getDescription() != null) board.setDescription(request.getDescription());
-        if (request.getIsPrivate() != null) board.setIsPrivate(request.getIsPrivate());
+        if (request.getName() != null)
+            board.setName(request.getName());
+        if (request.getDescription() != null)
+            board.setDescription(request.getDescription());
+        if (request.getIsPrivate() != null)
+            board.setIsPrivate(request.getIsPrivate());
 
         board = boardRepository.save(board);
         return mapToBoardResponse(board);
@@ -104,7 +107,3 @@ public class BoardService {
         return response;
     }
 }
-
-
-
-

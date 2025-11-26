@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "pins")
@@ -36,6 +38,13 @@ public class Pin {
 
     @Column(name = "board_id")
     private Long boardId;
+
+    @ManyToMany
+    @JoinTable(name = "boards_pins", joinColumns = @JoinColumn(name = "pin_id"), inverseJoinColumns = @JoinColumn(name = "board_id"))
+    private Set<Board> boards = new HashSet<>();
+
+    @Column(name = "parent_pin_id")
+    private Long parentPinId;
 
     @Column(name = "is_public")
     private Boolean isPublic = true;

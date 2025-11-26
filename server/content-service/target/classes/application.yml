@@ -24,6 +24,8 @@ spring:
       discovery:
         service-name: content-service
         enabled: true
+        prefer-ip-address: true
+        hostname: localhost
 
 resilience4j:
   circuitbreaker:

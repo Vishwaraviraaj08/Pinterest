@@ -28,4 +28,6 @@ public class PinRequest {
     private Boolean isDraft = false;
 
     private List<String> keywords;
+
+    private Long parentPinId;
 }

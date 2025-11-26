@@ -30,6 +30,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
         link: pin.link,
         boardId: Number(selectedBoard),
         isPublic: pin.isPublic,
+        parentPinId: pin.parentPinId || pin.id, // If it's already a copy, use its parent. Otherwise, use its ID.
       });
       onHide();
     } catch (error) {
@@ -51,6 +52,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
           link: pin.link,
           boardId: newBoard.id,
           isPublic: pin.isPublic,
+          parentPinId: pin.parentPinId || pin.id,
         });
         setShowCreateBoard(false);
         setNewBoardName('');
@@ -84,7 +86,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
             </Button>
 
             <ListGroup>
-              {boards.map((board) => {
+              {(boards || []).map((board) => {
                 const isSaved = isPinSavedToBoard(board);
                 return (
                   <ListGroup.Item

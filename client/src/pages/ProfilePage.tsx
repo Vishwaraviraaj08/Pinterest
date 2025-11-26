@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Button, Nav, Image, Modal, Form, Spinner } from 'react-bootstrap';
-import { Settings, Share2, ExternalLink, Edit2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Container, Row, Col, Button, Nav, Image, Modal, Form, Spinner, InputGroup } from 'react-bootstrap';
+import { Settings, Share2, ExternalLink, Edit2, Search, Plus } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePins } from '../contexts/PinContext';
 import { useBoards } from '../contexts/BoardContext';
@@ -32,9 +32,47 @@ const ProfilePage: React.FC = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
+  // Search and Sort State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+
   const parsedUserId = userId ? parseInt(userId) : currentUser?.id;
   const isOwnProfile = currentUser?.id === parsedUserId;
   const isFollowing = following.some(f => f.followingId === parsedUserId);
+
+  // Filter and Sort Logic
+  const filteredPins = useMemo(() => {
+    let result = [...pins];
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(pin =>
+        pin.title.toLowerCase().includes(lowerQuery) ||
+        pin.description?.toLowerCase().includes(lowerQuery)
+      );
+    }
+    return result.sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      if (sortBy === 'alphabetical') return a.title.localeCompare(b.title);
+      return 0;
+    });
+  }, [pins, searchQuery, sortBy]);
+
+  const filteredBoards = useMemo(() => {
+    let result = [...boards];
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(board =>
+        board.name.toLowerCase().includes(lowerQuery)
+      );
+    }
+    return result.sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      if (sortBy === 'oldest') return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+      if (sortBy === 'alphabetical') return a.name.localeCompare(b.name);
+      return 0;
+    });
+  }, [boards, searchQuery, sortBy]);
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -239,50 +277,80 @@ const ProfilePage: React.FC = () => {
           </Nav>
         </div>
 
-        {/* Boards Section */}
+        {/* Search and Filter Bar */}
+        <div className="mb-4">
+          <Row className="g-2 align-items-center">
+            <Col>
+              <InputGroup>
+                <InputGroup.Text className="bg-light border-0 rounded-pill-start ps-3">
+                  <Search size={18} className="text-muted" />
+                </InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  placeholder="Search your pins and boards"
+                  className="bg-light border-0 rounded-pill-end"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </InputGroup>
+            </Col>
+            <Col xs="auto">
+              <Form.Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="border-0 bg-light rounded-pill"
+                style={{ cursor: 'pointer' }}
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="alphabetical">A-Z</option>
+              </Form.Select>
+            </Col>
+            <Col xs="auto">
+              <Button variant="light" className="rounded-circle p-2">
+                <Plus size={24} onClick={() => navigate('/create-pin')} />
+              </Button>
+            </Col>
+          </Row>
+        </div>
+
+        {/* Created Tab - Pins Only */}
         {activeTab === 'created' && (
-          <>
-            <div className="mb-4">
-              <h5 className="mb-3">Boards</h5>
-              {boardsLoading ? (
-                <Spinner animation="border" size="sm" />
-              ) : boards.length > 0 ? (
-                <Row>
-                  {boards.map((board) => (
-                    <Col key={board.id} xs={12} sm={6} md={3} className="mb-4">
-                      <BoardCard board={board} />
-                    </Col>
-                  ))}
-                </Row>
-              ) : (
-                <p className="text-muted">No boards created yet.</p>
-              )}
-            </div>
-
-            {/* Created Pins Section */}
-            <div className="mb-4">
-              <h5 className="mb-3">Created Pins</h5>
-              {pinsLoading ? (
-                <Spinner animation="border" size="sm" />
-              ) : pins.length > 0 ? (
-                <div className="masonry-grid">
-                  {pins.map((pin) => (
-                    <PinCard key={pin.id} pin={pin} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted">No pins created yet.</p>
-              )}
-            </div>
-          </>
-        )}
-
-        {activeTab === 'saved' && (
-          <div className="text-center py-5">
-            <p className="text-muted">Saved pins feature coming soon!</p>
+          <div className="mb-4">
+            {pinsLoading ? (
+              <Spinner animation="border" size="sm" />
+            ) : filteredPins.length > 0 ? (
+              <div className="masonry-grid">
+                {filteredPins.map((pin) => (
+                  <PinCard key={pin.id} pin={pin} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted text-center py-5">No pins found.</p>
+            )}
           </div>
         )}
 
+        {/* Saved Tab - Boards */}
+        {activeTab === 'saved' && (
+          <div className="mb-4">
+            {boardsLoading ? (
+              <Spinner animation="border" size="sm" />
+            ) : filteredBoards.length > 0 ? (
+              <Row>
+                {filteredBoards.map((board) => (
+                  <Col key={board.id} xs={12} sm={6} md={3} className="mb-4">
+                    <BoardCard board={board} />
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <p className="text-muted text-center py-5">No boards found.</p>
+            )}
+          </div>
+        )}
+
+        {/* Drafts Tab */}
         {activeTab === 'drafts' && isOwnProfile && (
           <div className="mb-4">
             <h5 className="mb-3">Your Drafts</h5>

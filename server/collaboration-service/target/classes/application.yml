@@ -24,7 +24,8 @@ spring:
       discovery:
         service-name: collaboration-service
         enabled: true
-
+        prefer-ip-address: true
+        hostname: localhost
 resilience4j:
   circuitbreaker:
     instances:

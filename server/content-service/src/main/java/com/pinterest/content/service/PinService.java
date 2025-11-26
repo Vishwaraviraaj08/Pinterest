@@ -34,6 +34,10 @@ public class PinService {
             pin.setKeywords(String.join(",", request.getKeywords()));
         }
 
+        if (request.getParentPinId() != null) {
+            pin.setParentPinId(request.getParentPinId());
+        }
+
         pin = pinRepository.save(pin);
         return mapToResponse(pin);
     }

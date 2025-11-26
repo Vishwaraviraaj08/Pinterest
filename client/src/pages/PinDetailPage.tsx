@@ -4,39 +4,85 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Bookmark, ExternalLink, MoreHorizontal, Send, Edit, Trash } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePins } from '../contexts/PinContext';
+import { useBoards } from '../contexts/BoardContext';
 import { authService } from '../services/authService';
 import { UserResponse } from '../types';
+import { contentService } from '../services/contentService';
 import SaveToBoardModal from '../components/SaveToBoardModal';
+
+interface CommentWithUser {
+  id: number;
+  username: string;
+  avatar: string;
+  text: string;
+  timestamp: string;
+  userId: number;
+}
 
 const PinDetailPage: React.FC = () => {
   const { pinId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { selectedPin: pin, fetchPinById, deletePin, isLoading, error } = usePins();
+  const { boards, fetchUserBoards } = useBoards();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserBoards(user.id);
+    }
+  }, [user, fetchUserBoards]);
 
   const [creator, setCreator] = useState<UserResponse | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [comment, setComment] = useState('');
-  const [comments, setComments] = useState([
-    {
-      id: '1',
-      username: 'user123',
-      avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100',
-      text: 'Love this! Where can I get one?',
-      timestamp: '2h ago',
-    },
-    {
-      id: '2',
-      username: 'designer_pro',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100',
-      text: 'Such great inspiration!',
-      timestamp: '5h ago',
-    },
-  ]);
+  const [comments, setComments] = useState<CommentWithUser[]>([]);
+  const [isCommentsLoading, setIsCommentsLoading] = useState(false);
+
+  const fetchComments = async () => {
+    if (!pinId) return;
+    setIsCommentsLoading(true);
+    try {
+      const fetchedComments = await contentService.getComments(parseInt(pinId));
+
+      const commentsWithUserData = await Promise.all(
+        fetchedComments.map(async (c: any) => {
+          try {
+            const userProfile = await authService.getProfile(c.userId);
+            return {
+              id: c.id,
+              username: userProfile.username,
+              avatar: userProfile.avatar || `/public/default-avatar.svg`,
+              text: c.text,
+              timestamp: new Date(c.createdAt).toLocaleDateString(), // Simple formatting
+              userId: c.userId
+            };
+          } catch (err) {
+            console.error(`Failed to fetch user for comment ${c.id}`, err);
+            return {
+              id: c.id,
+              username: 'Unknown User',
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${c.userId}`,
+              text: c.text,
+              timestamp: new Date(c.createdAt).toLocaleDateString(),
+              userId: c.userId
+            };
+          }
+        })
+      );
+
+      // Sort by newest first
+      setComments(commentsWithUserData.reverse());
+    } catch (err) {
+      console.error('Failed to fetch comments:', err);
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (pinId) {
       fetchPinById(parseInt(pinId));
+      fetchComments();
     }
   }, [pinId, fetchPinById]);
 
@@ -75,20 +121,20 @@ const PinDetailPage: React.FC = () => {
 
   const isOwnPin = pin.userId === user?.id;
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (comment.trim()) {
-      setComments([
-        {
-          id: Date.now().toString(),
-          username: user?.username || 'currentuser',
-          avatar: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100',
+    if (comment.trim() && pinId) {
+      try {
+        await contentService.createComment({
           text: comment,
-          timestamp: 'Just now',
-        },
-        ...comments,
-      ]);
-      setComment('');
+          pinId: parseInt(pinId)
+        });
+        setComment('');
+        fetchComments(); // Refresh comments
+      } catch (err) {
+        console.error('Failed to add comment:', err);
+        alert('Failed to add comment');
+      }
     }
   };
 
@@ -267,6 +313,7 @@ const PinDetailPage: React.FC = () => {
           show={showSaveModal}
           onHide={() => setShowSaveModal(false)}
           pin={pin}
+          boards={boards}
         />
       )}
     </>
