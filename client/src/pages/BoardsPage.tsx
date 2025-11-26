@@ -5,40 +5,23 @@ import BoardCard from '../components/BoardCard';
 import CreateBoardModal from '../components/CreateBoardModal';
 import { useBoards } from '../contexts/BoardContext';
 import { useAuth } from '../contexts/AuthContext';
-import { BoardRequest } from '../types';
 
 const BoardsPage: React.FC = () => {
-  const { boards, fetchUserBoards, createBoard, isLoading, error } = useBoards();
+  const { boards, fetchUserBoards, isLoading, error } = useBoards();
   const { user } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       fetchUserBoards(user.id);
-      console.log(boards);
     }
   }, [user?.id, fetchUserBoards]);
 
-  const handleCreateBoard = async (boardData: {
-    name: string;
-    description: string;
-    isPrivate: boolean;
-    isCollaborative: boolean;
-    coverImage?: string;
-  }) => {
-    try {
-      const request: BoardRequest = {
-        name: boardData.name,
-        description: boardData.description,
-        isPrivate: boardData.isPrivate,
-        coverImage: boardData.coverImage,
-      };
-      await createBoard(request);
-      setShowCreateModal(false);
-    } catch (err) {
-      console.error('Failed to create board:', err);
-      // Error is handled by context and displayed via 'error' state if needed
+  const handleBoardCreated = () => {
+    if (user?.id) {
+      fetchUserBoards(user.id);
     }
+    setShowCreateModal(false);
   };
 
   if (isLoading && boards.length === 0) {
@@ -102,7 +85,7 @@ const BoardsPage: React.FC = () => {
       <CreateBoardModal
         show={showCreateModal}
         onHide={() => setShowCreateModal(false)}
-        onCreateBoard={handleCreateBoard}
+        onBoardCreated={handleBoardCreated}
       />
     </>
   );

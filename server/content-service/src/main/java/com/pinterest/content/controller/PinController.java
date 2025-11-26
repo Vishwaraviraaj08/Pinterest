@@ -44,6 +44,13 @@ public class PinController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/drafts")
+    @Operation(summary = "Get all drafts by user")
+    public ResponseEntity<List<PinResponse>> getUserDrafts(@RequestHeader("X-User-Id") Long userId) {
+        List<PinResponse> response = pinService.getUserDrafts(userId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/public")
     @Operation(summary = "Get all public pins")
     public ResponseEntity<List<PinResponse>> getPublicPins() {

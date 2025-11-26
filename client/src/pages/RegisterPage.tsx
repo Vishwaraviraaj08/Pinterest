@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -30,10 +30,12 @@ const backgroundImages = [
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     email: '',
+    username: '',
     password: '',
-    birthdate: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordWarnings, setPasswordWarnings] = useState<string[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,11 +48,16 @@ const RegisterPage: React.FC = () => {
   const validatePassword = (password: string) => {
     const warnings: string[] = [];
     if (password.length < 8) warnings.push('Use 8 or more characters');
+    if (password.length > 16) warnings.push('Use maximum 16 characters');
     if (!/[a-z]/.test(password)) warnings.push('Use lowercase letter');
     if (!/[A-Z]/.test(password)) warnings.push('Use uppercase letter');
     if (!/[0-9]/.test(password)) warnings.push('Use number');
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) warnings.push('Use symbol');
     return warnings;
+  };
+
+  const validateUsername = (username: string) => {
+    return /^[a-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/.test(username);
   };
 
   const handlePasswordChange = (value: string) => {
@@ -62,8 +69,18 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
+    if (!validateUsername(formData.username)) {
+      setError('Username can only contain lowercase letters, digits, and special characters');
+      return;
+    }
+
     if (passwordWarnings.length > 0) {
       setError('Please meet all password requirements');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       return;
     }
 
@@ -71,15 +88,20 @@ const RegisterPage: React.FC = () => {
     try {
       await register({
         email: formData.email,
+        username: formData.username,
         password: formData.password,
-        confirmPassword: formData.password,
+        confirmPassword: formData.confirmPassword,
+        firstName: '', // Optional
+        lastName: '', // Optional
       });
       navigate('/');
     } catch (err: any) {
       if (err.message === 'EMAIL_EXISTS') {
         setError('Email already in use');
+      } else if (err.message.includes('Username is already taken')) {
+        setError('Username is already taken');
       } else {
-        setError('Failed to create account');
+        setError(err.message || 'Failed to create account');
       }
     } finally {
       setLoading(false);
@@ -88,34 +110,17 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
-      {/* Scrolling Background Container */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-        <div
-          className="auth-background-scroll"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gridAutoRows: 'minmax(150px, 250px)',
-            gap: '8px',
-            opacity: 0.25,
-            height: '200vh',
-          }}
-        >
-          {scrollingImages.map((img, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundImage: `url(${img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderRadius: '16px',
-                gridRow: `span ${Math.floor(Math.random() * 2) + 1}`,
-                gridColumn: `span ${Math.floor(Math.random() * 2) + 1}`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Static Background */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'url(/bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'brightness(0.7)',
+        }}
+      />
 
       {/* Signup Card */}
       <div
@@ -127,7 +132,6 @@ const RegisterPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
-          pointerEvents: 'none',
         }}
       >
         <div
@@ -138,7 +142,8 @@ const RegisterPage: React.FC = () => {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
             width: '100%',
             maxWidth: '480px',
-            pointerEvents: 'auto',
+            maxHeight: '90vh',
+            overflowY: 'auto'
           }}
         >
           <div className="text-center mb-4">
@@ -167,6 +172,26 @@ const RegisterPage: React.FC = () => {
                   fontSize: '16px',
                 }}
               />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                required
+                style={{
+                  borderRadius: '16px',
+                  padding: '14px 16px',
+                  border: '2px solid #ccc',
+                  fontSize: '16px',
+                }}
+              />
+              <Form.Text className="text-muted">
+                Lowercase letters, digits, and special characters only.
+              </Form.Text>
             </Form.Group>
 
             <Form.Group className="mb-3">
@@ -228,25 +253,50 @@ const RegisterPage: React.FC = () => {
             </Form.Group>
 
             <Form.Group className="mb-4">
-              <Form.Label>Birthdate</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="mm/dd/yyyy"
-                value={formData.birthdate}
-                onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
-                style={{
-                  borderRadius: '16px',
-                  padding: '14px 16px',
-                  border: '2px solid #ccc',
-                  fontSize: '16px',
-                }}
-              />
+              <Form.Label>Confirm Password</Form.Label>
+              <div style={{ position: 'relative' }}>
+                <Form.Control
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  placeholder="Confirm password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  required
+                  style={{
+                    borderRadius: '16px',
+                    padding: '14px 16px',
+                    paddingRight: '45px',
+                    border: '2px solid #ccc',
+                    fontSize: '16px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                  }}
+                >
+                  {showConfirmPassword ? <EyeOff size={20} color="#767676" /> : <Eye size={20} color="#767676" />}
+                </button>
+              </div>
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <div className="mt-2 text-danger small">
+                  Passwords do not match
+                </div>
+              )}
             </Form.Group>
 
             <Button
               type="submit"
               className="w-100 mb-3"
-              disabled={loading || passwordWarnings.length > 0}
+              disabled={loading || passwordWarnings.length > 0 || formData.password !== formData.confirmPassword}
               style={{
                 backgroundColor: '#e60023',
                 borderColor: '#e60023',

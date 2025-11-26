@@ -22,6 +22,9 @@ public class Pin {
 
     private String description;
 
+    @Column(columnDefinition = "TEXT")
+    private String keywords;
+
     @Lob
     @Column(name = "image_url", nullable = false, columnDefinition = "LONGTEXT")
     private String imageUrl;

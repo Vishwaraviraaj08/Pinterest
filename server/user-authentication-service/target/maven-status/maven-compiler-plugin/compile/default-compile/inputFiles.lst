@@ -2,8 +2,11 @@ C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentica
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\config\OpenApiConfig.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\config\SecurityConfig.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\controller\AuthController.java
+C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\controller\OtpController.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\AuthResponse.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\LoginRequest.java
+C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\OtpRequest.java
+C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\OtpVerificationRequest.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\PasswordResetRequest.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\RegisterRequest.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\dto\UserResponse.java
@@ -12,6 +15,7 @@ C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentica
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\exception\ErrorResponse.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\exception\GlobalExceptionHandler.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\repository\UserRepository.java
+C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\service\OtpService.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\service\UserService.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\UserAuthenticationServiceApplication.java
 C:\Users\vishw\OneDrive\Desktop\Pinterest - Final version\server\user-authentication-service\src\main\java\com\pinterest\auth\util\JwtUtil.java

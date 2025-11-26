@@ -91,16 +91,14 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
                 <MoreHorizontal size={16} />
               </Dropdown.Toggle>
               <Dropdown.Menu>
-                <Dropdown.Item href={pin.link} target="_blank">
+                <Dropdown.Item href={pin.link} target="_blank" className="d-flex align-items-center">
                   <ExternalLink size={16} className="me-2" />
                   Visit site
                 </Dropdown.Item>
-                <Dropdown.Item onClick={handleDownload}>
+                <Dropdown.Item onClick={handleDownload} className="d-flex align-items-center">
                   <Download size={16} className="me-2" />
                   Download image
                 </Dropdown.Item>
-                <Dropdown.Item>Hide Pin</Dropdown.Item>
-                <Dropdown.Item>Report</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </div>

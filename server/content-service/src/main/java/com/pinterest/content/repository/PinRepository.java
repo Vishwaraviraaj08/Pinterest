@@ -11,15 +11,16 @@ import java.util.List;
 @Repository
 public interface PinRepository extends JpaRepository<Pin, Long> {
     List<Pin> findByUserId(Long userId);
+
     List<Pin> findByBoardId(Long boardId);
+
     List<Pin> findByUserIdAndIsDraftFalse(Long userId);
+
+    List<Pin> findByUserIdAndIsDraftTrue(Long userId);
+
     List<Pin> findByIsPublicTrueAndIsDraftFalse();
-    
+
     @Query("SELECT p FROM Pin p WHERE p.isPublic = true AND p.isDraft = false AND " +
-           "(p.title LIKE %:keyword% OR p.description LIKE %:keyword%)")
+            "(p.title LIKE %:keyword% OR p.description LIKE %:keyword% OR p.keywords LIKE %:keyword%)")
     List<Pin> searchPins(@Param("keyword") String keyword);
 }
-
-
-
-

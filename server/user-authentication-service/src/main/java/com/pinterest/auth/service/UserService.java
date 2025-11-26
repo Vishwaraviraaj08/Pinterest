@@ -118,9 +118,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomException("User not found with the provided email"));
 
-        if (user.getMobileNumber() == null || !user.getMobileNumber().equals(request.getMobileNumber())) {
-            throw new CustomException("Mobile number verification failed");
-        }
+        // Removed mobile number verification as per requirement
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);

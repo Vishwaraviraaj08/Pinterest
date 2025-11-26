@@ -28,8 +28,14 @@ public class PinService {
     public PinResponse createPin(PinRequest request, Long userId) {
         Pin pin = modelMapper.map(request, Pin.class);
         pin.setUserId(userId);
+
+        // Handle keywords conversion
+        if (request.getKeywords() != null) {
+            pin.setKeywords(String.join(",", request.getKeywords()));
+        }
+
         pin = pinRepository.save(pin);
-        return modelMapper.map(pin, PinResponse.class);
+        return mapToResponse(pin);
     }
 
     public PinResponse createPinFallback(PinRequest request, Long userId, Exception ex) {
@@ -41,14 +47,22 @@ public class PinService {
     public PinResponse getPinById(Long pinId) {
         Pin pin = pinRepository.findById(pinId)
                 .orElseThrow(() -> new CustomException("Pin not found"));
-        return modelMapper.map(pin, PinResponse.class);
+        return mapToResponse(pin);
     }
 
     @Transactional(readOnly = true)
     public List<PinResponse> getUserPins(Long userId) {
         List<Pin> pins = pinRepository.findByUserIdAndIsDraftFalse(userId);
         return pins.stream()
-                .map(pin -> modelMapper.map(pin, PinResponse.class))
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PinResponse> getUserDrafts(Long userId) {
+        List<Pin> pins = pinRepository.findByUserIdAndIsDraftTrue(userId);
+        return pins.stream()
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -56,7 +70,7 @@ public class PinService {
     public List<PinResponse> getPublicPins() {
         List<Pin> pins = pinRepository.findByIsPublicTrueAndIsDraftFalse();
         return pins.stream()
-                .map(pin -> modelMapper.map(pin, PinResponse.class))
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -64,7 +78,7 @@ public class PinService {
     public List<PinResponse> searchPins(String keyword) {
         List<Pin> pins = pinRepository.searchPins(keyword);
         return pins.stream()
-                .map(pin -> modelMapper.map(pin, PinResponse.class))
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -77,16 +91,27 @@ public class PinService {
             throw new CustomException("You don't have permission to update this pin");
         }
 
-        if (request.getTitle() != null) pin.setTitle(request.getTitle());
-        if (request.getDescription() != null) pin.setDescription(request.getDescription());
-        if (request.getImageUrl() != null) pin.setImageUrl(request.getImageUrl());
-        if (request.getLink() != null) pin.setLink(request.getLink());
-        if (request.getBoardId() != null) pin.setBoardId(request.getBoardId());
-        if (request.getIsPublic() != null) pin.setIsPublic(request.getIsPublic());
-        if (request.getIsDraft() != null) pin.setIsDraft(request.getIsDraft());
+        if (request.getTitle() != null)
+            pin.setTitle(request.getTitle());
+        if (request.getDescription() != null)
+            pin.setDescription(request.getDescription());
+        if (request.getImageUrl() != null)
+            pin.setImageUrl(request.getImageUrl());
+        if (request.getLink() != null)
+            pin.setLink(request.getLink());
+        if (request.getBoardId() != null)
+            pin.setBoardId(request.getBoardId());
+        if (request.getIsPublic() != null)
+            pin.setIsPublic(request.getIsPublic());
+        if (request.getIsDraft() != null)
+            pin.setIsDraft(request.getIsDraft());
+
+        if (request.getKeywords() != null) {
+            pin.setKeywords(String.join(",", request.getKeywords()));
+        }
 
         pin = pinRepository.save(pin);
-        return modelMapper.map(pin, PinResponse.class);
+        return mapToResponse(pin);
     }
 
     @Transactional
@@ -100,8 +125,14 @@ public class PinService {
 
         pinRepository.delete(pin);
     }
+
+    private PinResponse mapToResponse(Pin pin) {
+        PinResponse response = modelMapper.map(pin, PinResponse.class);
+        if (pin.getKeywords() != null && !pin.getKeywords().isEmpty()) {
+            response.setKeywords(List.of(pin.getKeywords().split(",")));
+        } else {
+            response.setKeywords(List.of());
+        }
+        return response;
+    }
 }
-
-
-
-

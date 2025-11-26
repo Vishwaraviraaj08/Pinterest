@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -23,9 +24,6 @@ public class PinResponse {
     private Integer savesCount;
     private Integer commentsCount;
     private LocalDateTime createdAt;
+    private List<String> keywords;
     private LocalDateTime updatedAt;
 }
-
-
-
-

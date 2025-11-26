@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Spinner, ProgressBar } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginAttempt {
   count: number;
@@ -35,15 +36,17 @@ const backgroundImages = [
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [loginAttempts, setLoginAttempts] = useState<LoginAttempt>({
-    count: 0,
-    firstAttemptTime: 0,
-    lockedUntil: null,
+
+  // Login attempt tracking
+  const [loginAttempts, setLoginAttempts] = useState<{ count: number; firstAttemptTime: number; lockedUntil: number | null }>(() => {
+    const stored = localStorage.getItem('loginAttempts');
+    return stored ? JSON.parse(stored) : { count: 0, firstAttemptTime: 0, lockedUntil: null };
   });
+
   const [remainingTime, setRemainingTime] = useState(0);
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
   // Create doubled images for seamless loop
@@ -53,7 +56,7 @@ const LoginPage: React.FC = () => {
     if (loginAttempts.lockedUntil) {
       const interval = setInterval(() => {
         const now = Date.now();
-        const timeLeft = Math.max(0, loginAttempts.lockedUntil - now);
+        const timeLeft = Math.max(0, (loginAttempts.lockedUntil || 0) - now);
         setRemainingTime(Math.ceil(timeLeft / 1000));
 
         if (timeLeft === 0) {
@@ -108,51 +111,45 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     if (!checkCircuitBreaker()) return;
-    setLoading(true);
-
     try {
       await login(email, password);
-      setLoginAttempts({ count: 0, firstAttemptTime: 0, lockedUntil: null });
       navigate('/');
-    } catch (err) {
-      handleFailedLogin();
-    } finally {
-      setLoading(false);
+      // Successful login will redirect via ProtectedRoute/AuthContext
+    } catch (err: any) {
+      const newCount = loginAttempts.count + 1;
+      let newLockedUntil = null;
+
+      if (newCount >= 5) {
+        newLockedUntil = Date.now() + 30000; // Lock for 30 seconds
+      }
+
+      const newAttempts = {
+        count: newCount,
+        firstAttemptTime: loginAttempts.firstAttemptTime || Date.now(),
+        lockedUntil: newLockedUntil,
+      };
+
+      setLoginAttempts(newAttempts);
+      localStorage.setItem('loginAttempts', JSON.stringify(newAttempts));
+      setError(err.message || 'Failed to log in');
     }
   };
 
-  const isLocked = loginAttempts.lockedUntil && Date.now() < loginAttempts.lockedUntil;
+  const isLocked = Boolean(loginAttempts.lockedUntil && Date.now() < loginAttempts.lockedUntil);
 
   return (
     <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
-      {/* Scrolling Background Container */}
-      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}>
-        <div
-          className="auth-background-scroll"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gridAutoRows: 'minmax(150px, 250px)',
-            gap: '8px',
-            opacity: 0.25,
-            height: '200vh',
-          }}
-        >
-          {scrollingImages.map((img, idx) => (
-            <div
-              key={idx}
-              style={{
-                backgroundImage: `url(${img})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                borderRadius: '16px',
-                gridRow: `span ${Math.floor(Math.random() * 2) + 1}`,
-                gridColumn: `span ${Math.floor(Math.random() * 2) + 1}`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Static Background */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'url(/bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'brightness(0.7)',
+        }}
+      />
 
       {/* Login Card */}
       <div
@@ -164,7 +161,6 @@ const LoginPage: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
-          pointerEvents: 'none',
         }}
       >
         <div
@@ -175,7 +171,6 @@ const LoginPage: React.FC = () => {
             boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
             width: '100%',
             maxWidth: '480px',
-            pointerEvents: 'auto',
           }}
         >
           <div className="text-center mb-4">
@@ -188,16 +183,6 @@ const LoginPage: React.FC = () => {
 
           {error && <Alert variant="danger">{error}</Alert>}
 
-          {isLocked && (
-            <div className="mb-3">
-              <div className="d-flex justify-content-between mb-2">
-                <small>Account locked</small>
-                <small>{remainingTime}s remaining</small>
-              </div>
-              <ProgressBar now={(remainingTime / 60) * 100} variant="danger" animated />
-            </div>
-          )}
-
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label>Email</Form.Label>
@@ -206,7 +191,6 @@ const LoginPage: React.FC = () => {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={isLocked}
                 required
                 style={{
                   borderRadius: '16px',
@@ -219,26 +203,49 @@ const LoginPage: React.FC = () => {
 
             <Form.Group className="mb-4">
               <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLocked}
-                required
-                style={{
-                  borderRadius: '16px',
-                  padding: '14px 16px',
-                  border: '2px solid #ccc',
-                  fontSize: '16px',
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <Form.Control
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{
+                    borderRadius: '16px',
+                    padding: '14px 16px',
+                    paddingRight: '45px',
+                    border: '2px solid #ccc',
+                    fontSize: '16px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    padding: '4px',
+                  }}
+                >
+                  {showPassword ? <EyeOff size={20} color="#767676" /> : <Eye size={20} color="#767676" />}
+                </button>
+              </div>
+              <div className="text-end mt-2">
+                <Link to="/forgot-password" style={{ color: '#333', fontSize: '14px', textDecoration: 'none', fontWeight: '600' }}>
+                  Forgot password?
+                </Link>
+              </div>
             </Form.Group>
 
             <Button
               type="submit"
               className="w-100 mb-3"
-              disabled={loading || isLocked}
+              disabled={isLoading || isLocked}
               style={{
                 backgroundColor: '#e60023',
                 borderColor: '#e60023',
@@ -248,13 +255,15 @@ const LoginPage: React.FC = () => {
                 fontWeight: '600',
               }}
             >
-              {loading ? (
+              {isLoading ? (
                 <>
                   <Spinner animation="border" size="sm" className="me-2" />
                   Logging in...
                 </>
+              ) : isLocked ? (
+                `Try again in ${remainingTime}s`
               ) : (
-                'Continue'
+                'Log in'
               )}
             </Button>
           </Form>

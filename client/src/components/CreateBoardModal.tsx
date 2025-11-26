@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { useBoards } from '../contexts/BoardContext';
+import { BoardRequest } from '../types';
 
 interface CreateBoardModalProps {
   show: boolean;
   onHide: () => void;
-  onCreateBoard: (boardData: {
-    name: string;
-    description: string;
-    isPrivate: boolean;
-    isCollaborative: boolean;
-    coverImage?: string;
-  }) => void;
+  onBoardCreated?: () => void;
 }
 
-const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCreateBoard }) => {
+const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoardCreated }) => {
+  const { createBoard } = useBoards();
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -22,17 +22,38 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
     coverImage: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onCreateBoard(formData);
-    setFormData({
-      name: '',
-      description: '',
-      isPrivate: false,
-      isCollaborative: false,
-      coverImage: '',
-    });
-    onHide();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const request: BoardRequest = {
+        name: formData.name,
+        description: formData.description,
+        isPrivate: formData.isPrivate,
+        coverImage: formData.coverImage,
+      };
+
+      await createBoard(request);
+
+      setFormData({
+        name: '',
+        description: '',
+        isPrivate: false,
+        isCollaborative: false,
+        coverImage: '',
+      });
+
+      if (onBoardCreated) {
+        onBoardCreated();
+      }
+      onHide();
+    } catch (err: any) {
+      setError(err.message || 'Failed to create board');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,6 +62,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
         <Modal.Title>Create Board</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {error && <Alert variant="danger">{error}</Alert>}
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>Name</Form.Label>
@@ -126,6 +148,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
               variant="light"
               onClick={onHide}
               className="flex-grow-1 rounded-pill"
+              disabled={isLoading}
             >
               Cancel
             </Button>
@@ -134,8 +157,9 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onCre
               variant="primary"
               className="flex-grow-1 rounded-pill"
               style={{ backgroundColor: '#e7000b', borderColor: '#e7000b' }}
+              disabled={isLoading}
             >
-              Create
+              {isLoading ? 'Creating...' : 'Create'}
             </Button>
           </div>
         </Form>

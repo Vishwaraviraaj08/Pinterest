@@ -35,25 +35,7 @@ export interface RegisterRequest {
 
 export interface PasswordResetRequest {
     email: string;
-    mobileNumber: string;
     newPassword: string;
-}
-
-export interface PinResponse {
-    id: number;
-    title: string;
-    description?: string;
-    imageUrl: string;
-    link?: string;
-    userId: number;
-    boardId?: number;
-    isPublic: boolean;
-    isDraft: boolean;
-    isSponsored: boolean;
-    savesCount: number;
-    commentsCount: number;
-    createdAt: string;
-    updatedAt: string;
 }
 
 export interface PinRequest {
@@ -64,6 +46,25 @@ export interface PinRequest {
     boardId?: number;
     isPublic?: boolean;
     isDraft?: boolean;
+    keywords?: string[];
+}
+
+export interface PinResponse {
+    id: number;
+    title: string;
+    description: string;
+    imageUrl: string;
+    link: string;
+    userId: number;
+    boardId: number;
+    isPublic: boolean;
+    isDraft: boolean;
+    isSponsored: boolean;
+    savesCount: number;
+    commentsCount: number;
+    createdAt: string;
+    updatedAt: string;
+    keywords?: string[];
 }
 
 export interface BoardResponse {
@@ -132,6 +133,15 @@ export interface ApiError {
     message: string;
     status: number;
     timestamp: string;
+}
+
+export interface OtpRequest {
+    email: string;
+}
+
+export interface OtpVerificationRequest {
+    email: string;
+    otp: string;
 }
 
 // Aliases for backward compatibility

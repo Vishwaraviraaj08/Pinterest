@@ -15,3 +15,4 @@ com\pinterest\auth\exception\CustomException.class
 com\pinterest\auth\entity\User.class
 com\pinterest\auth\config\OpenApiConfig.class
 com\pinterest\auth\exception\ErrorResponse.class
+com\pinterest\auth\service\OtpService.class

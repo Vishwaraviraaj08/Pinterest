@@ -160,9 +160,6 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                         <Download size={16} className="me-2" />
                         Download image
                       </Dropdown.Item>
-                      <Dropdown.Item onClick={() => setShowReportModal(true)} className="d-flex align-items-center">
-                        <span className="ms-4">Report Pin</span>
-                      </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                 </div>

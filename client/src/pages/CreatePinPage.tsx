@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Form, Button, Card, Badge, Modal, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Upload, Eye, Save, X } from 'lucide-react';
+import { Upload, Eye, Save, X, Plus } from 'lucide-react';
 import { usePins } from '../contexts/PinContext';
 import { useBoards } from '../contexts/BoardContext';
 import { useAuth } from '../contexts/AuthContext';
 import { PinRequest, PinResponse } from '../types';
+import CreateBoardModal from '../components/CreateBoardModal';
 
 const CreatePinPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const CreatePinPage: React.FC = () => {
     description: editPin?.description || '',
     link: editPin?.link || '',
     boardId: editPin?.boardId?.toString() || '',
-    keywords: [] as string[], // Keywords not yet in backend DTO, keeping local for now
+    keywords: editPin?.keywords || [] as string[],
     isPublic: editPin?.isPublic ?? true,
     imageUrl: editPin?.imageUrl || '',
   });
@@ -30,6 +31,7 @@ const CreatePinPage: React.FC = () => {
   const [keywordInput, setKeywordInput] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [showDraftConfirm, setShowDraftConfirm] = useState(false);
+  const [showCreateBoardModal, setShowCreateBoardModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -72,8 +74,6 @@ const CreatePinPage: React.FC = () => {
   };
 
   const handleSaveAsDraft = async () => {
-    // For now, saving as draft just means isDraft = true in the backend
-    // or we can keep using localStorage. Let's use backend with isDraft=true
     try {
       const pinData: PinRequest = {
         title: formData.title,
@@ -83,6 +83,7 @@ const CreatePinPage: React.FC = () => {
         boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
         isPublic: formData.isPublic,
         isDraft: true,
+        keywords: formData.keywords,
       };
 
       if (editPin) {
@@ -115,6 +116,7 @@ const CreatePinPage: React.FC = () => {
         boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
         isPublic: formData.isPublic,
         isDraft: false,
+        keywords: formData.keywords,
       };
 
       if (editPin) {
@@ -132,6 +134,13 @@ const CreatePinPage: React.FC = () => {
 
   const handlePreview = () => {
     setShowPreview(true);
+  };
+
+  const handleBoardCreated = () => {
+    if (user?.id) {
+      fetchUserBoards(user.id);
+    }
+    setShowCreateBoardModal(false);
   };
 
   if (isBoardsLoading && !boards.length) {
@@ -290,19 +299,28 @@ const CreatePinPage: React.FC = () => {
 
                   <Form.Group className="mb-3">
                     <Form.Label>Board</Form.Label>
-                    <Form.Select
-                      value={formData.boardId}
-                      onChange={(e) =>
-                        setFormData({ ...formData, boardId: e.target.value })
-                      }
-                    >
-                      <option value="">Select a board (optional)</option>
-                      {boards.map((board) => (
-                        <option key={board.id} value={board.id}>
-                          {board.name}
-                        </option>
-                      ))}
-                    </Form.Select>
+                    <div className="d-flex gap-2">
+                      <Form.Select
+                        value={formData.boardId}
+                        onChange={(e) =>
+                          setFormData({ ...formData, boardId: e.target.value })
+                        }
+                      >
+                        <option value="">Select a board (optional)</option>
+                        {boards.map((board) => (
+                          <option key={board.id} value={board.id}>
+                            {board.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => setShowCreateBoardModal(true)}
+                        title="Create new board"
+                      >
+                        <Plus size={20} />
+                      </Button>
+                    </div>
                   </Form.Group>
 
                   <Form.Group className="mb-4">
@@ -415,6 +433,12 @@ const CreatePinPage: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <CreateBoardModal
+        show={showCreateBoardModal}
+        onHide={() => setShowCreateBoardModal(false)}
+        onBoardCreated={handleBoardCreated}
+      />
     </>
   );
 };

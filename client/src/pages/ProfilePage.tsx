@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Button, Nav, Image, Modal, Form, Spinner } from 'react-bootstrap';
-import { Settings, Share2, ExternalLink } from 'lucide-react';
+import { Settings, Share2, ExternalLink, Edit2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { usePins } from '../contexts/PinContext';
 import { useBoards } from '../contexts/BoardContext';
@@ -16,7 +16,7 @@ const ProfilePage: React.FC = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const { user: currentUser, updateProfile } = useAuth();
-  const { pins, fetchUserPins, isLoading: pinsLoading } = usePins();
+  const { pins, drafts, fetchUserPins, fetchUserDrafts, isLoading: pinsLoading } = usePins();
   const { boards, fetchUserBoards, isLoading: boardsLoading } = useBoards();
   const { following, followUser, unfollowUser, fetchFollowing } = useConnections();
 
@@ -62,6 +62,10 @@ const ProfilePage: React.FC = () => {
           currentUser && fetchFollowing(currentUser.id)
         ]);
 
+        if (isOwnProfile) {
+          fetchUserDrafts();
+        }
+
         // Fetch counts separately to avoid context conflict
         try {
           const followersData = await collaborationService.getFollowers(parsedUserId);
@@ -80,7 +84,7 @@ const ProfilePage: React.FC = () => {
     };
 
     loadProfileData();
-  }, [parsedUserId, isOwnProfile, currentUser, fetchUserPins, fetchUserBoards, fetchFollowing]);
+  }, [parsedUserId, isOwnProfile, currentUser, fetchUserPins, fetchUserBoards, fetchFollowing, fetchUserDrafts]);
 
   const handleSaveProfile = () => {
     updateProfile(editForm);
@@ -216,6 +220,22 @@ const ProfilePage: React.FC = () => {
                 Saved
               </Nav.Link>
             </Nav.Item>
+            {isOwnProfile && (
+              <Nav.Item>
+                <Nav.Link
+                  onClick={() => setActiveTab('drafts')}
+                  className="cursor-pointer"
+                  style={{
+                    borderBottom: activeTab === 'drafts' ? '4px solid #000' : '4px solid transparent',
+                    color: activeTab === 'drafts' ? '#000' : '#4a5565',
+                    fontWeight: 'normal',
+                    padding: '12px 16px',
+                  }}
+                >
+                  Drafts
+                </Nav.Link>
+              </Nav.Item>
+            )}
           </Nav>
         </div>
 
@@ -260,6 +280,43 @@ const ProfilePage: React.FC = () => {
         {activeTab === 'saved' && (
           <div className="text-center py-5">
             <p className="text-muted">Saved pins feature coming soon!</p>
+          </div>
+        )}
+
+        {activeTab === 'drafts' && isOwnProfile && (
+          <div className="mb-4">
+            <h5 className="mb-3">Your Drafts</h5>
+            {pinsLoading ? (
+              <Spinner animation="border" size="sm" />
+            ) : drafts.length > 0 ? (
+              <Row>
+                {drafts.map((draft) => (
+                  <Col key={draft.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                    <div
+                      className="position-relative"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => navigate('/create-pin', { state: { editPin: draft } })}
+                    >
+                      <Image
+                        src={draft.imageUrl}
+                        fluid
+                        style={{ borderRadius: '16px', width: '100%', height: 'auto', objectFit: 'cover' }}
+                      />
+                      <div
+                        className="position-absolute top-0 end-0 p-2"
+                        style={{ background: 'rgba(0,0,0,0.5)', borderRadius: '0 16px 0 16px', color: 'white' }}
+                      >
+                        <Edit2 size={16} />
+                      </div>
+                      <h6 className="mt-2 mb-0 text-truncate">{draft.title || 'Untitled Draft'}</h6>
+                      <small className="text-muted">Last edited: {new Date(draft.updatedAt).toLocaleDateString()}</small>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            ) : (
+              <p className="text-muted">No drafts found.</p>
+            )}
           </div>
         )}
       </Container>

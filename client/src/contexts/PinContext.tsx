@@ -4,11 +4,13 @@ import { PinResponse, PinRequest } from '../types';
 
 interface PinContextType {
     pins: PinResponse[];
+    drafts: PinResponse[];
     selectedPin: PinResponse | null;
     isLoading: boolean;
     error: string | null;
     fetchPublicPins: () => Promise<void>;
     fetchUserPins: (userId: number) => Promise<void>;
+    fetchUserDrafts: () => Promise<void>;
     fetchPinById: (pinId: number) => Promise<void>;
     searchPins: (keyword: string) => Promise<void>;
     createPin: (data: PinRequest) => Promise<PinResponse>;
@@ -33,6 +35,8 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [drafts, setDrafts] = useState<PinResponse[]>([]);
+
     const clearError = useCallback(() => setError(null), []);
 
     const fetchPublicPins = useCallback(async () => {
@@ -56,6 +60,19 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             setPins(data);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch user pins');
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    const fetchUserDrafts = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const data = await contentService.getUserDrafts();
+            setDrafts(data);
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to fetch user drafts');
         } finally {
             setIsLoading(false);
         }
@@ -92,7 +109,11 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setError(null);
         try {
             const newPin = await contentService.createPin(data);
-            setPins((prev) => [newPin, ...prev]);
+            if (newPin.isDraft) {
+                setDrafts((prev) => [newPin, ...prev]);
+            } else {
+                setPins((prev) => [newPin, ...prev]);
+            }
             return newPin;
         } catch (err: any) {
             const errorMessage = err.response?.data?.message || 'Failed to create pin';
@@ -108,7 +129,11 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setError(null);
         try {
             const updatedPin = await contentService.updatePin(pinId, data);
-            setPins((prev) => prev.map((pin) => (pin.id === pinId ? updatedPin : pin)));
+            if (updatedPin.isDraft) {
+                setDrafts((prev) => prev.map((pin) => (pin.id === pinId ? updatedPin : pin)));
+            } else {
+                setPins((prev) => prev.map((pin) => (pin.id === pinId ? updatedPin : pin)));
+            }
             if (selectedPin?.id === pinId) {
                 setSelectedPin(updatedPin);
             }
@@ -126,6 +151,7 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         try {
             await contentService.deletePin(pinId);
             setPins((prev) => prev.filter((pin) => pin.id !== pinId));
+            setDrafts((prev) => prev.filter((pin) => pin.id !== pinId));
             if (selectedPin?.id === pinId) {
                 setSelectedPin(null);
             }
@@ -141,11 +167,13 @@ export const PinProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         <PinContext.Provider
             value={{
                 pins,
+                drafts,
                 selectedPin,
                 isLoading,
                 error,
                 fetchPublicPins,
                 fetchUserPins,
+                fetchUserDrafts,
                 fetchPinById,
                 searchPins,
                 createPin,

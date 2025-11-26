@@ -13,6 +13,8 @@ public class RegisterRequest {
     @Email(message = "Email must be in valid format")
     private String email;
 
+    @NotBlank(message = "Please provide a username")
+    @Pattern(regexp = "^[a-z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?]+$", message = "Username can only contain lowercase letters, digits, and special characters")
     private String username;
 
     @NotBlank(message = "Please provide a valid password")

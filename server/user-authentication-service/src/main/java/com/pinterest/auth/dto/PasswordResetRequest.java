@@ -12,13 +12,6 @@ public class PasswordResetRequest {
     @NotBlank(message = "Please provide a valid email")
     private String email;
 
-    @NotBlank(message = "Please provide a valid mobile number")
-    private String mobileNumber;
-
     @NotBlank(message = "Please provide a valid new password")
     private String newPassword;
 }
-
-
-
-

@@ -10,6 +10,8 @@ import TopNavbar from './components/TopNavbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import OtpDisplayPage from './pages/OtpDisplayPage';
 import ProfilePage from './pages/ProfilePage';
 import BoardPage from './pages/BoardPage';
 import BoardsPage from './pages/BoardsPage';
@@ -72,6 +74,18 @@ const App: React.FC = () => {
                           <RegisterPage />
                         </AppLayout>
                       }
+                    />
+                    <Route
+                      path="/forgot-password"
+                      element={
+                        <AppLayout>
+                          <ForgotPasswordPage />
+                        </AppLayout>
+                      }
+                    />
+                    <Route
+                      path="/otp-display"
+                      element={<OtpDisplayPage />}
                     />
                     <Route
                       path="/"

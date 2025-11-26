@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,8 +26,6 @@ public class PinRequest {
     private Boolean isPublic = true;
 
     private Boolean isDraft = false;
+
+    private List<String> keywords;
 }
-
-
-
-

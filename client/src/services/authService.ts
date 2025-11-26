@@ -4,7 +4,9 @@ import {
   LoginRequest,
   RegisterRequest,
   PasswordResetRequest,
-  UserResponse
+  UserResponse,
+  OtpRequest,
+  OtpVerificationRequest
 } from '../types';
 
 export const authService = {
@@ -30,6 +32,16 @@ export const authService = {
 
   updateProfile: async (userId: number, data: Partial<UserResponse>): Promise<UserResponse> => {
     const response = await api.put<UserResponse>(`/auth/profile/${userId}`, data);
+    return response.data;
+  },
+
+  generateOtp: async (data: OtpRequest): Promise<{ message: string; otp: string }> => {
+    const response = await api.post<{ message: string; otp: string }>('/auth/otp/generate', data);
+    return response.data;
+  },
+
+  verifyOtp: async (data: OtpVerificationRequest): Promise<{ message: string }> => {
+    const response = await api.post<{ message: string }>('/auth/otp/verify', data);
     return response.data;
   },
 };

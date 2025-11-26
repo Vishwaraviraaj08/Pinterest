@@ -18,6 +18,11 @@ export const contentService = {
     return response.data;
   },
 
+  getUserDrafts: async (): Promise<PinResponse[]> => {
+    const response = await api.get<PinResponse[]>('/content/pins/drafts');
+    return response.data;
+  },
+
   getPublicPins: async (): Promise<PinResponse[]> => {
     const response = await api.get<PinResponse[]>('/content/pins/public');
     return response.data;
