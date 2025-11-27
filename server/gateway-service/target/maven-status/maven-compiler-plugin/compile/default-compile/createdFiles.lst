@@ -1,5 +1,0 @@
-com\pinterest\gateway\config\GatewayConfig.class
-com\pinterest\gateway\config\GlobalErrorHandler.class
-com\pinterest\gateway\filter\JwtAuthenticationFilter$Config.class
-com\pinterest\gateway\GatewayServiceApplication.class
-com\pinterest\gateway\filter\JwtAuthenticationFilter.class

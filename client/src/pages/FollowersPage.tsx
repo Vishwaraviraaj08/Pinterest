@@ -130,6 +130,22 @@ const FollowersPage: React.FC = () => {
     }
   }, [followers, following, isConnLoading]);
 
+  // Separate effect to update isFollowing status when myFollowingIds changes
+  useEffect(() => {
+    setEnrichedFollowers(prev => 
+      prev.map(user => ({
+        ...user,
+        isFollowing: myFollowingIds[user.id] || false
+      }))
+    );
+    setEnrichedFollowing(prev => 
+      prev.map(user => ({
+        ...user,
+        isFollowing: myFollowingIds[user.id] || false
+      }))
+    );
+  }, [myFollowingIds]);
+
   const handleFollowToggle = async (targetUserId: number, currentStatus: boolean) => {
     try {
       if (currentStatus) {
@@ -146,6 +162,7 @@ const FollowersPage: React.FC = () => {
           [targetUserId]: true
         }));
       }
+
 
       // If we are viewing our own profile, refresh the lists to reflect changes
       if (currentUser?.id === parseInt(userId || '0')) {
