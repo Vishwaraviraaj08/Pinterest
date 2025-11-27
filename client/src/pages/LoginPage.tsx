@@ -88,50 +88,43 @@ const LoginPage: React.FC = () => {
 
   const handleFailedLogin = () => {
     const now = Date.now();
-    const newCount = loginAttempts.count + 1;
-    const firstAttemptTime = loginAttempts.firstAttemptTime || now;
+    const newCount = (loginAttempts.count || 0) + 1;
 
-    if (now - firstAttemptTime <= 30000) {
-      if (newCount >= 3) {
-        const lockedUntil = now + 60000;
-        setLoginAttempts({ count: newCount, firstAttemptTime, lockedUntil });
-        setRemainingTime(60);
-        setError('Too many failed attempts. Account locked for 1 minute.');
-      } else {
-        setLoginAttempts({ count: newCount, firstAttemptTime, lockedUntil: null });
-        setError(`Invalid credentials. ${3 - newCount} attempts remaining.`);
-      }
+    if (newCount >= 3) {
+      const lockedUntil = now + 30000; // 30 seconds lock
+      setLoginAttempts({ count: newCount, firstAttemptTime: now, lockedUntil });
+      localStorage.setItem('loginAttempts', JSON.stringify({ count: newCount, firstAttemptTime: now, lockedUntil }));
+      setRemainingTime(30);
+      setError('Too many failed attempts. Account locked for 30 seconds.');
     } else {
-      setLoginAttempts({ count: 1, firstAttemptTime: now, lockedUntil: null });
-      setError('Invalid email or password.');
+      setLoginAttempts(prev => {
+        const newState = { ...prev, count: newCount };
+        localStorage.setItem('loginAttempts', JSON.stringify(newState));
+        return newState;
+      });
+      setError(`Wrong user name or password. ${3 - newCount} attempts remaining.`);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!checkCircuitBreaker()) return;
+
+    // Client-side check for existing lockout
+    if (loginAttempts.lockedUntil && Date.now() < loginAttempts.lockedUntil) {
+      return;
+    }
+
     try {
       await login(email, password);
+      // Reset attempts on success
+      setLoginAttempts({ count: 0, firstAttemptTime: 0, lockedUntil: null });
+      localStorage.removeItem('loginAttempts');
       navigate('/');
-      // Successful login will redirect via ProtectedRoute/AuthContext
     } catch (err: any) {
-      const newCount = loginAttempts.count + 1;
-      let newLockedUntil = null;
-
-      if (newCount >= 5) {
-        newLockedUntil = Date.now() + 30000; // Lock for 30 seconds
-      }
-
-      const newAttempts = {
-        count: newCount,
-        firstAttemptTime: loginAttempts.firstAttemptTime || Date.now(),
-        lockedUntil: newLockedUntil,
-      };
-
-      setLoginAttempts(newAttempts);
-      localStorage.setItem('loginAttempts', JSON.stringify(newAttempts));
-      setError(err.message || 'Failed to log in');
+      // Backend just says "Wrong user name or password" or similar.
+      // We handle the counting here.
+      handleFailedLogin();
     }
   };
 
@@ -182,6 +175,19 @@ const LoginPage: React.FC = () => {
           </div>
 
           {error && <Alert variant="danger">{error}</Alert>}
+
+          {isLocked && (
+            <div className="mb-4">
+              <ProgressBar
+                variant="danger"
+                now={(remainingTime / 30) * 100}
+                striped
+                animated
+                label={`${remainingTime}s`}
+                style={{ height: '24px', fontSize: '14px', fontWeight: 'bold' }}
+              />
+            </div>
+          )}
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
@@ -260,8 +266,6 @@ const LoginPage: React.FC = () => {
                   <Spinner animation="border" size="sm" className="me-2" />
                   Logging in...
                 </>
-              ) : isLocked ? (
-                `Try again in ${remainingTime}s`
               ) : (
                 'Log in'
               )}

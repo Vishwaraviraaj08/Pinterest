@@ -72,6 +72,10 @@ export const contentService = {
     await api.delete(`/content/boards/${boardId}`);
   },
 
+  addPinToBoard: async (boardId: number, pinId: number): Promise<void> => {
+    await api.post(`/content/boards/${boardId}/pins/${pinId}`);
+  },
+
   // Reports
   createReport: async (data: { title: string; message: string; pinId: number }): Promise<void> => {
     await api.post('/content/reports', data);

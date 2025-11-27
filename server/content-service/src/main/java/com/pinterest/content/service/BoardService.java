@@ -96,11 +96,35 @@ public class BoardService {
         boardRepository.delete(board);
     }
 
+    @Transactional
+    public void addPinToBoard(Long boardId, Long pinId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException("Board not found"));
+        Pin pin = pinRepository.findById(pinId)
+                .orElseThrow(() -> new CustomException("Pin not found"));
+
+        if (pin.getBoards().contains(board)) {
+            throw new CustomException("Pin already added to this board");
+        }
+
+        pin.getBoards().add(board);
+        pinRepository.save(pin);
+    }
+
     private BoardResponse mapToBoardResponse(Board board) {
         BoardResponse response = modelMapper.map(board, BoardResponse.class);
-        List<Pin> pins = pinRepository.findByBoardId(board.getId());
-        response.setPinCount(pins.size());
-        List<PinResponse> pinResponses = pins.stream()
+
+        // Fetch pins from both relationships
+        List<Pin> pinsFromColumn = pinRepository.findByBoardId(board.getId());
+        List<Pin> pinsFromJoinTable = pinRepository.findByBoardsId(board.getId());
+
+        // Combine and deduplicate
+        java.util.Set<Pin> allPins = new java.util.HashSet<>();
+        allPins.addAll(pinsFromColumn);
+        allPins.addAll(pinsFromJoinTable);
+
+        response.setPinCount(allPins.size());
+        List<PinResponse> pinResponses = allPins.stream()
                 .map(pin -> modelMapper.map(pin, PinResponse.class))
                 .collect(Collectors.toList());
         response.setPins(pinResponses);

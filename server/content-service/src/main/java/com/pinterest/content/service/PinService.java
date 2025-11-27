@@ -57,9 +57,7 @@ public class PinService {
     @Transactional(readOnly = true)
     public List<PinResponse> getUserPins(Long userId) {
         List<Pin> pins = pinRepository.findByUserIdAndIsDraftFalse(userId);
-        return pins.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return deduplicatePins(pins);
     }
 
     @Transactional(readOnly = true)
@@ -73,17 +71,13 @@ public class PinService {
     @Transactional(readOnly = true)
     public List<PinResponse> getPublicPins() {
         List<Pin> pins = pinRepository.findByIsPublicTrueAndIsDraftFalse();
-        return pins.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return deduplicatePins(pins);
     }
 
     @Transactional(readOnly = true)
     public List<PinResponse> searchPins(String keyword) {
         List<Pin> pins = pinRepository.searchPins(keyword);
-        return pins.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return deduplicatePins(pins);
     }
 
     @Transactional
@@ -138,5 +132,20 @@ public class PinService {
             response.setKeywords(List.of());
         }
         return response;
+    }
+
+    private List<PinResponse> deduplicatePins(List<Pin> pins) {
+        // Use a map to keep only unique pins based on imageUrl
+        // If multiple pins have the same image, keep the first one encountered
+        return pins.stream()
+                .filter(pin -> pin.getImageUrl() != null)
+                .collect(Collectors.toMap(
+                        Pin::getImageUrl,
+                        p -> p,
+                        (existing, replacement) -> existing))
+                .values()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 }

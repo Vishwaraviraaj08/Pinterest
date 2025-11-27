@@ -84,15 +84,15 @@ public class UserService {
     }
 
     @CircuitBreaker(name = "loginCircuitBreaker", fallbackMethod = "loginFallback")
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         log.info("Attempting login for email: {}", request.getEmail());
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomException("Invalid email or password"));
+                .orElseThrow(() -> new CustomException("Wrong user name or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new CustomException("Invalid email or password");
+            throw new CustomException("Wrong user name or password");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getId());
@@ -109,6 +109,9 @@ public class UserService {
     }
 
     public AuthResponse loginFallback(LoginRequest request, Exception ex) {
+        if (ex instanceof CustomException) {
+            throw (CustomException) ex;
+        }
         log.error("Circuit breaker opened for login. Fallback method called.", ex);
         throw new CustomException("Service temporarily unavailable. Please try again later.");
     }

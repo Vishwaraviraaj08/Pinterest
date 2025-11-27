@@ -12,27 +12,22 @@ interface SaveToBoardModalProps {
 }
 
 const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, boards }) => {
-  const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
+  const [selectedBoards, setSelectedBoards] = useState<string[]>([]);
   const [showCreateBoard, setShowCreateBoard] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    if (!selectedBoard) return;
+    if (selectedBoards.length === 0) return;
 
     setIsSaving(true);
     try {
-      // Create a new pin instance for the selected board
-      await contentService.createPin({
-        title: pin.title,
-        description: pin.description,
-        imageUrl: pin.imageUrl,
-        link: pin.link,
-        boardId: Number(selectedBoard),
-        isPublic: pin.isPublic,
-        parentPinId: pin.parentPinId || pin.id, // If it's already a copy, use its parent. Otherwise, use its ID.
-      });
+      // Save to all selected boards
+      await Promise.all(selectedBoards.map(boardId =>
+        contentService.addPinToBoard(Number(boardId), Number(pin.id))
+      ));
       onHide();
+      setSelectedBoards([]);
     } catch (error) {
       console.error('Error saving pin:', error);
     } finally {
@@ -45,15 +40,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
       try {
         const newBoard = await contentService.createBoard({ name: newBoardName });
         // Automatically save to the new board
-        await contentService.createPin({
-          title: pin.title,
-          description: pin.description,
-          imageUrl: pin.imageUrl,
-          link: pin.link,
-          boardId: newBoard.id,
-          isPublic: pin.isPublic,
-          parentPinId: pin.parentPinId || pin.id,
-        });
+        await contentService.addPinToBoard(newBoard.id, Number(pin.id));
         setShowCreateBoard(false);
         setNewBoardName('');
         onHide();
@@ -88,11 +75,20 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
             <ListGroup>
               {(boards || []).map((board) => {
                 const isSaved = isPinSavedToBoard(board);
+                const isSelected = selectedBoards.includes(board.id.toString());
                 return (
                   <ListGroup.Item
                     key={board.id}
                     action={!isSaved}
-                    onClick={() => !isSaved && setSelectedBoard(board.id.toString())}
+                    onClick={() => {
+                      if (!isSaved) {
+                        setSelectedBoards(prev =>
+                          prev.includes(board.id.toString())
+                            ? prev.filter(id => id !== board.id.toString())
+                            : [...prev, board.id.toString()]
+                        );
+                      }
+                    }}
                     className="d-flex justify-content-between align-items-center"
                     disabled={isSaved}
                     style={{ opacity: isSaved ? 0.7 : 1, cursor: isSaved ? 'default' : 'pointer' }}
@@ -128,7 +124,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
                     {isSaved ? (
                       <span className="badge bg-secondary">Saved</span>
                     ) : (
-                      selectedBoard === board.id.toString() && <Check size={20} color="green" />
+                      isSelected && <Check size={20} color="green" />
                     )}
                   </ListGroup.Item>
                 );
@@ -172,9 +168,9 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
           <Button
             variant="danger"
             onClick={handleSave}
-            disabled={!selectedBoard || isSaving}
+            disabled={selectedBoards.length === 0 || isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? 'Saving...' : `Save (${selectedBoards.length})`}
           </Button>
         </Modal.Footer>
       )}
