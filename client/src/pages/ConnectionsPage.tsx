@@ -19,6 +19,7 @@ const ConnectionsPage: React.FC = () => {
   const [enrichedFollowing, setEnrichedFollowing] = useState<ConnectionUI[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [myFollowingIds, setMyFollowingIds] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     if (user?.id) {
@@ -26,6 +27,15 @@ const ConnectionsPage: React.FC = () => {
       fetchFollowing(user.id);
     }
   }, [user?.id, fetchFollowers, fetchFollowing]);
+
+  // Populate myFollowingIds from the following array
+  useEffect(() => {
+    const ids: Record<number, boolean> = {};
+    following.forEach(conn => {
+      ids[conn.followingId] = true;
+    });
+    setMyFollowingIds(ids);
+  }, [following]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -37,11 +47,11 @@ const ConnectionsPage: React.FC = () => {
             followers.map(async (conn) => {
               try {
                 const profile = await authService.getProfile(conn.followerId);
-                // Check if I am following them back
-                // This is a bit complex without a direct "isFollowing" check from backend
-                // For now, check if they are in my following list
-                const isFollowingBack = following.some(f => f.followingId === conn.followerId);
-                return { ...profile, connectionId: conn.id, isFollowing: isFollowingBack };
+                return { 
+                  ...profile, 
+                  connectionId: conn.id, 
+                  isFollowing: myFollowingIds[conn.followerId] || false 
+                };
               } catch (e) {
                 console.error(`Failed to fetch profile for follower ${conn.followerId}`, e);
                 return null;
@@ -59,7 +69,11 @@ const ConnectionsPage: React.FC = () => {
             following.map(async (conn) => {
               try {
                 const profile = await authService.getProfile(conn.followingId);
-                return { ...profile, connectionId: conn.id, isFollowing: true };
+                return { 
+                  ...profile, 
+                  connectionId: conn.id, 
+                  isFollowing: myFollowingIds[conn.followingId] || false 
+                };
               } catch (e) {
                 console.error(`Failed to fetch profile for following ${conn.followingId}`, e);
                 return null;
@@ -83,25 +97,56 @@ const ConnectionsPage: React.FC = () => {
     }
   }, [followers, following, isConnLoading]);
 
-  const handleFollowToggle = async (userId: number, isFollowing: boolean) => {
+  // Separate effect to update isFollowing status when myFollowingIds changes
+  useEffect(() => {
+    setEnrichedFollowers(prev => 
+      prev.map(user => ({
+        ...user,
+        isFollowing: myFollowingIds[user.id] || false
+      }))
+    );
+    setEnrichedFollowing(prev => 
+      prev.map(user => ({
+        ...user,
+        isFollowing: myFollowingIds[user.id] || false
+      }))
+    );
+  }, [myFollowingIds]);
+
+  const handleFollowToggle = async (userId: number, currentStatus: boolean) => {
     try {
-      if (isFollowing) {
+      if (currentStatus) {
         await unfollowUser(userId);
-        // Update local state
-        setEnrichedFollowing(prev => prev.filter(u => u.id !== userId));
-        setEnrichedFollowers(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: false } : u));
+        setMyFollowingIds(prev => {
+          const next = { ...prev };
+          delete next[userId];
+          return next;
+        });
       } else {
         await followUser(userId);
-        // Update local state - re-fetch would be better but expensive
-        // Ideally we add to following list
-        const userToFollow = enrichedFollowers.find(u => u.id === userId);
-        if (userToFollow) {
-          setEnrichedFollowing(prev => [...prev, { ...userToFollow, isFollowing: true }]);
-          setEnrichedFollowers(prev => prev.map(u => u.id === userId ? { ...u, isFollowing: true } : u));
-        }
+        setMyFollowingIds(prev => ({
+          ...prev,
+          [userId]: true
+        }));
       }
-    } catch (error) {
-      alert('Failed to update connection');
+
+      // If we are on our own connections page, refresh the following list
+      if (user?.id) {
+        fetchFollowing(user.id);
+      }
+    } catch (error: any) {
+      // Handle "Already following" error by syncing local state
+      if (error.response?.status === 400) {
+        setMyFollowingIds(prev => ({
+          ...prev,
+          [userId]: true
+        }));
+        if (user?.id) {
+          fetchFollowing(user.id);
+        }
+      } else {
+        console.error('Failed to update connection:', error);
+      }
     }
   };
 
@@ -210,18 +255,18 @@ const ConnectionsPage: React.FC = () => {
                 </div>
                 <div className="d-flex gap-2 align-items-center">
                   <Button
-                    variant={user.isFollowing ? 'light' : 'danger'}
+                    variant={myFollowingIds[user.id] ? 'light' : 'danger'}
                     size="sm"
                     className="rounded-pill d-flex align-items-center gap-2"
-                    onClick={() => handleFollowToggle(user.id, user.isFollowing)}
+                    onClick={() => handleFollowToggle(user.id, myFollowingIds[user.id] || false)}
                     style={{
-                      backgroundColor: user.isFollowing ? '#efefef' : '#e60023',
-                      borderColor: user.isFollowing ? '#efefef' : '#e60023',
-                      color: user.isFollowing ? '#000' : '#fff',
+                      backgroundColor: myFollowingIds[user.id] ? '#efefef' : '#e60023',
+                      borderColor: myFollowingIds[user.id] ? '#efefef' : '#e60023',
+                      color: myFollowingIds[user.id] ? '#000' : '#fff',
                       padding: '6px 16px',
                     }}
                   >
-                    {user.isFollowing ? (
+                    {myFollowingIds[user.id] ? (
                       <>
                         <UserMinus size={14} />
                         Unfollow
