@@ -20,7 +20,7 @@ for S in "${SERVICES[@]}"; do
     # Check if .env exists
     if [ -f "$S/.env" ]; then
         echo "Updating .env in $S ..."
-        echo "DB_PASSWORD=Bewin007" > "$S/.env"
+        echo "DB_PASSWORD=vishwa08" > "$S/.env"
     else
         echo "No .env found in $S"
     fi
