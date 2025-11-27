@@ -20,6 +20,8 @@ import SearchPage from './pages/SearchPage';
 import CreatePinPage from './pages/CreatePinPage';
 import FollowersPage from './pages/FollowersPage';
 import InvitationsPage from './pages/InvitationsPage';
+
+
 import ConnectionsPage from './pages/ConnectionsPage';
 import BusinessProfilesPage from './pages/BusinessProfilesPage';
 import 'bootstrap/dist/css/bootstrap.min.css';

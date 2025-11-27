@@ -31,7 +31,7 @@ public class InvitationController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get user invitations")
-    public ResponseEntity<List<InvitationResponse>> getInvitations(@PathVariable Long userId) {
+    public ResponseEntity<List<InvitationResponse>> getInvitations(@PathVariable("userId") Long userId) {
         List<InvitationResponse> response = invitationService.getInvitations(userId);
         return ResponseEntity.ok(response);
     }
@@ -39,14 +39,10 @@ public class InvitationController {
     @PutMapping("/{invitationId}/respond")
     @Operation(summary = "Respond to invitation")
     public ResponseEntity<InvitationResponse> respondToInvitation(
-            @PathVariable Long invitationId,
-            @RequestParam String response,
+            @PathVariable("invitationId") Long invitationId,
+            @RequestParam("response") String response,
             @RequestHeader("X-User-Id") Long userId) {
         InvitationResponse resp = invitationService.respondToInvitation(invitationId, response, userId);
         return ResponseEntity.ok(resp);
     }
 }
-
-
-
-

@@ -1,257 +1,157 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Image, Button, Badge, Spinner, Alert } from 'react-bootstrap';
-import { Users, UserPlus, CheckCircle, XCircle } from 'lucide-react';
-import { useInvitations } from '../contexts/InvitationContext';
+import { Container, Row, Col, Card, Button, Image, Spinner, Alert, Badge } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
+import { collaborationService } from '../services/collaborationService';
 import { authService } from '../services/authService';
 import { InvitationResponse, UserResponse } from '../types';
+import { Check, X, UserPlus, Layout } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-interface InvitationUI extends InvitationResponse {
+interface EnrichedInvitation extends InvitationResponse {
   inviter?: UserResponse;
 }
 
 const InvitationsPage: React.FC = () => {
   const { user } = useAuth();
-  const { invitations, fetchInvitations, respondToInvitation, isLoading: isInvLoading, error: invError } = useInvitations();
-  const [enrichedInvitations, setEnrichedInvitations] = useState<InvitationUI[]>([]);
-  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
+  const navigate = useNavigate();
+  const [invitations, setInvitations] = useState<EnrichedInvitation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchInvitations(user.id);
-    }
-  }, [user?.id, fetchInvitations]);
+    const fetchInvitations = async () => {
+      if (!user?.id) return;
+      setIsLoading(true);
+      try {
+        const data = await collaborationService.getInvitations(user.id);
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      if (invitations.length > 0) {
-        setIsLoadingDetails(true);
-        try {
-          const enriched = await Promise.all(
-            invitations.map(async (inv) => {
-              try {
-                const inviter = await authService.getProfile(inv.inviterId);
-                return { ...inv, inviter };
-              } catch (e) {
-                console.error(`Failed to fetch inviter details for ${inv.inviterId}`, e);
-                return inv;
-              }
-            })
-          );
-          setEnrichedInvitations(enriched);
-        } catch (error) {
-          console.error('Error fetching invitation details:', error);
-        } finally {
-          setIsLoadingDetails(false);
-        }
-      } else {
-        setEnrichedInvitations([]);
+        // Filter only PENDING invitations
+        const pendingInvitations = data.filter(inv => inv.status === 'PENDING');
+
+        // Enrich with inviter details
+        const enriched = await Promise.all(
+          pendingInvitations.map(async (inv) => {
+            try {
+              const inviter = await authService.getProfile(inv.inviterId);
+              return { ...inv, inviter };
+            } catch (e) {
+              console.error(`Failed to fetch inviter ${inv.inviterId}`, e);
+              return inv;
+            }
+          })
+        );
+        setInvitations(enriched);
+      } catch (err) {
+        console.error('Failed to fetch invitations', err);
+        setError('Failed to load invitations.');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchDetails();
-  }, [invitations]);
+    fetchInvitations();
+  }, [user?.id]);
 
-  const handleAccept = async (invitationId: number) => {
+  const handleRespond = async (invitationId: number, response: 'ACCEPTED' | 'DECLINED') => {
     try {
-      await respondToInvitation(invitationId, 'ACCEPTED');
-      alert('Invitation accepted!');
-    } catch (error) {
-      alert('Failed to accept invitation');
+      if (!user?.id) return;
+      await collaborationService.respondToInvitation(invitationId, response);
+
+      // Remove from list
+      setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
+
+      // Optional: Show success toast/alert
+    } catch (err) {
+      console.error('Failed to respond to invitation', err);
+      alert('Failed to process invitation response.');
     }
   };
 
-  const handleDecline = async (invitationId: number) => {
-    try {
-      await respondToInvitation(invitationId, 'DECLINED');
-      alert('Invitation declined');
-    } catch (error) {
-      alert('Failed to decline invitation');
-    }
-  };
-
-  const pendingInvitations = enrichedInvitations.filter(inv => inv.status === 'PENDING');
-  const pastInvitations = enrichedInvitations.filter(inv => inv.status !== 'PENDING');
-
-  const isLoading = isInvLoading || isLoadingDetails;
-
-  if (isLoading && enrichedInvitations.length === 0) {
+  if (isLoading) {
     return (
-      <div className="loading-container">
+      <Container className="py-5 text-center">
         <Spinner animation="border" variant="danger" />
-      </div>
+      </Container>
     );
   }
 
   return (
-    <Container className="py-4" style={{ maxWidth: '900px', marginTop: '80px' }}>
-      {/* Header */}
-      <div className="mb-4">
-        <h4 className="mb-0">Invitations & Notifications</h4>
-      </div>
+    <Container className="py-4" style={{ maxWidth: '800px' }}>
+      <h4 className="mb-4 fw-bold">Inbox</h4>
 
-      {invError && <Alert variant="danger">{invError}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Pending Invitations Section */}
-      <div className="mb-5">
-        <h5 className="mb-3">Pending Invitations</h5>
-
-        {pendingInvitations.length > 0 ? (
-          <div className="d-flex flex-column gap-3">
-            {pendingInvitations.map((invitation) => (
-              <Card key={invitation.id} className="border" style={{ borderRadius: '16px', borderColor: '#e1e1e1' }}>
-                <Card.Body className="p-4">
-                  <div className="d-flex gap-3">
-                    <div
-                      style={{
-                        width: '56px',
-                        height: '56px',
-                        minWidth: '56px',
-                        minHeight: '56px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          backgroundImage: `url(${invitation.inviter?.avatar || '/default-avatar.svg'})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }}
-                      />
-                    </div>
+      {invitations.length === 0 ? (
+        <div className="text-center py-5 text-muted">
+          <div className="mb-3">
+            <Layout size={48} strokeWidth={1} />
+          </div>
+          <h5>No pending invitations</h5>
+          <p>When people invite you to collaborate or connect, you'll see them here.</p>
+        </div>
+      ) : (
+        <Row>
+          <Col>
+            {invitations.map((inv) => (
+              <Card key={inv.id} className="mb-3 border-0 shadow-sm">
+                <Card.Body>
+                  <div className="d-flex align-items-center">
+                    <Image
+                      src={inv.inviter?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${inv.inviter?.username || 'user'}`}
+                      roundedCircle
+                      width={50}
+                      height={50}
+                      className="me-3 cursor-pointer"
+                      style={{ objectFit: 'cover' }}
+                      onClick={() => inv.inviter && navigate(`/profile/${inv.inviter.id}`)}
+                    />
                     <div className="flex-grow-1">
-                      <div className="d-flex align-items-center gap-2 mb-2">
-                        {invitation.invitationType === 'BOARD_COLLABORATION' ? (
-                          <Users size={20} style={{ color: '#155DFC' }} />
-                        ) : (
-                          <UserPlus size={20} style={{ color: '#155DFC' }} />
-                        )}
-                        <p className="mb-0" style={{ fontSize: '16px' }}>
-                          <strong>{invitation.inviter?.firstName} {invitation.inviter?.lastName}</strong>
-                          {invitation.invitationType === 'BOARD_COLLABORATION' ? (
-                            <>
-                              {' invited you to collaborate on a board'}
-                            </>
-                          ) : (
-                            ' wants to connect with you'
-                          )}
-                        </p>
+                      <h6 className="mb-1">
+                        <span
+                          className="fw-bold cursor-pointer"
+                          onClick={() => inv.inviter && navigate(`/profile/${inv.inviter.id}`)}
+                        >
+                          {inv.inviter?.firstName} {inv.inviter?.lastName}
+                        </span>
+                        {' '}
+                        <span className="fw-normal text-muted">
+                          invited you to
+                          {inv.invitationType === 'BOARD_COLLABORATION' ? ' collaborate on a board' : ' connect'}
+                        </span>
+                      </h6>
+                      <div className="d-flex align-items-center gap-2">
+                        <Badge bg="light" text="dark" className="fw-normal border">
+                          {inv.invitationType === 'BOARD_COLLABORATION' ? <Layout size={12} className="me-1" /> : <UserPlus size={12} className="me-1" />}
+                          {inv.invitationType === 'BOARD_COLLABORATION' ? 'Board Collaboration' : 'Connection'}
+                        </Badge>
+                        <small className="text-muted">
+                          {new Date(inv.createdAt).toLocaleDateString()}
+                        </small>
                       </div>
-
-                      <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted">{new Date(invitation.createdAt).toLocaleDateString()}</small>
-                        <div className="d-flex gap-2">
-                          <Button
-                            variant="light"
-                            size="sm"
-                            className="rounded-pill d-flex align-items-center gap-2"
-                            onClick={() => handleDecline(invitation.id)}
-                            style={{
-                              border: '1px solid #e1e1e1',
-                              color: '#364153',
-                            }}
-                          >
-                            <XCircle size={16} />
-                            Decline
-                          </Button>
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            className="rounded-pill d-flex align-items-center gap-2"
-                            onClick={() => handleAccept(invitation.id)}
-                            style={{
-                              backgroundColor: '#155DFC',
-                              borderColor: '#155DFC',
-                            }}
-                          >
-                            <CheckCircle size={16} />
-                            Accept
-                          </Button>
-                        </div>
-                      </div>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="light"
+                        className="rounded-pill px-3 fw-bold"
+                        onClick={() => handleRespond(inv.id, 'DECLINED')}
+                      >
+                        Decline
+                      </Button>
+                      <Button
+                        variant="danger"
+                        className="rounded-pill px-3 fw-bold"
+                        onClick={() => handleRespond(inv.id, 'ACCEPTED')}
+                      >
+                        Accept
+                      </Button>
                     </div>
                   </div>
                 </Card.Body>
               </Card>
             ))}
-          </div>
-        ) : (
-          <div className="text-center py-5">
-            <p className="text-muted">No pending invitations</p>
-          </div>
-        )}
-      </div>
-
-      {/* Past Invitations Section */}
-      <div>
-        <h5 className="mb-3">Past Invitations</h5>
-
-        {pastInvitations.length > 0 ? (
-          <div className="d-flex flex-column gap-3">
-            {pastInvitations.map((invitation) => (
-              <Card
-                key={invitation.id}
-                className="border"
-                style={{
-                  borderRadius: '16px',
-                  borderColor: '#e1e1e1',
-                  backgroundColor: '#fafafa',
-                }}
-              >
-                <Card.Body className="p-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <div
-                      style={{
-                        width: '48px',
-                        height: '48px',
-                        minWidth: '48px',
-                        minHeight: '48px',
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          backgroundImage: `url(${invitation.inviter?.avatar || '/default-avatar.svg'})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
-                        }}
-                      />
-                    </div>
-                    <div className="flex-grow-1">
-                      <p className="mb-0" style={{ fontSize: '14px' }}>
-                        <strong>{invitation.inviter?.username}</strong>
-                        <span className="text-muted ms-2">{invitation.invitationType}</span>
-                      </p>
-                      <small className="text-muted">{new Date(invitation.createdAt).toLocaleDateString()}</small>
-                    </div>
-                    <Badge
-                      bg={invitation.status === 'ACCEPTED' ? 'success' : 'secondary'}
-                      className="text-capitalize"
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                      }}
-                    >
-                      {invitation.status}
-                    </Badge>
-                  </div>
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-5">
-            <p className="text-muted">No past invitations</p>
-          </div>
-        )}
-      </div>
+          </Col>
+        </Row>
+      )}
     </Container>
   );
 };

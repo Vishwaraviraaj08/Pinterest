@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { Form, Image, ListGroup } from 'react-bootstrap';
 import { useAuth } from '../contexts/AuthContext';
 import { contentService } from '../services/contentService';
@@ -143,6 +143,15 @@ const TopNavbar: React.FC = () => {
             </ListGroup>
           </div>
         )}
+      </div>
+
+      {/* Notifications */}
+      <div
+        className="me-3 cursor-pointer p-2 rounded-circle hover-bg-light"
+        onClick={() => navigate('/invitations')}
+        title="Notifications"
+      >
+        <Bell size={24} color="#5f5f5f" />
       </div>
 
       {/* Profile Picture */}

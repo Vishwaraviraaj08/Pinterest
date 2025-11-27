@@ -176,11 +176,11 @@ const ProfilePage: React.FC = () => {
 
           {/* Stats */}
           <div className="d-flex justify-content-center gap-4 mb-4">
-            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}`)}>
+            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}?tab=followers`)}>
               <strong style={{ fontSize: '16px' }}>{followersCount}</strong>
               <span className="text-muted ms-1" style={{ fontSize: '16px' }}>followers</span>
             </div>
-            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}`)}>
+            <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}?tab=following`)}>
               <strong style={{ fontSize: '16px' }}>{followingCount}</strong>
               <span className="text-muted ms-1" style={{ fontSize: '16px' }}>following</span>
             </div>
