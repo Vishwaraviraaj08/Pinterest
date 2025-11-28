@@ -50,7 +50,7 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public List<BoardResponse> getUserBoards(Long userId) {
-        List<Board> boards = boardRepository.findByUserId(userId);
+        List<Board> boards = boardRepository.findByUserIdOrCollaboratorIdsContaining(userId, userId);
         return boards.stream()
                 .map(this::mapToBoardResponse)
                 .collect(Collectors.toList());
@@ -109,6 +109,15 @@ public class BoardService {
 
         pin.getBoards().add(board);
         pinRepository.save(pin);
+    }
+
+    @Transactional
+    public void addCollaborator(Long boardId, Long userId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException("Board not found"));
+
+        board.getCollaboratorIds().add(userId);
+        boardRepository.save(board);
     }
 
     private BoardResponse mapToBoardResponse(Board board) {

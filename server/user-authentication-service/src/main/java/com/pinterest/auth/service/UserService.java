@@ -166,4 +166,21 @@ public class UserService {
         user = userRepository.save(user);
         return modelMapper.map(user, UserResponse.class);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<UserResponse> searchUsers(String keyword) {
+        java.util.List<User> users = userRepository
+                .findByUsernameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword, keyword);
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<UserResponse> getUsersByIds(java.util.List<Long> userIds) {
+        java.util.List<User> users = userRepository.findAllById(userIds);
+        return users.stream()
+                .map(user -> modelMapper.map(user, UserResponse.class))
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

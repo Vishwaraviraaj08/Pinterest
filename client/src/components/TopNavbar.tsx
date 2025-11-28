@@ -161,7 +161,7 @@ const TopNavbar: React.FC = () => {
           style={{ cursor: 'pointer' }}
         >
           <Image
-            src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100'}
+            src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username}`}
             roundedCircle
             width={40}
             height={40}

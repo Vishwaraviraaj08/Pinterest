@@ -50,7 +50,7 @@ const PinDetailPage: React.FC = () => {
             const userProfile = await authService.getProfile(c.userId);
             return {
               id: c.id,
-              username: userProfile.username,
+              username: userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : userProfile.username,
               avatar: userProfile.avatar || `/public/default-avatar.svg`,
               text: c.text,
               timestamp: new Date(c.createdAt).toLocaleDateString(), // Simple formatting
@@ -249,7 +249,9 @@ const PinDetailPage: React.FC = () => {
                 style={{ objectFit: 'cover' }}
               />
               <div className="flex-grow-1">
-                <div className="fw-semibold">{creator?.username || 'Unknown User'}</div>
+                <div className="fw-semibold">
+                  {creator ? (creator.firstName ? `${creator.firstName} ${creator.lastName}` : creator.username) : 'Unknown User'}
+                </div>
                 <small className="text-muted">{pin.savesCount || 0} saves</small>
               </div>
               {!isOwnPin && (

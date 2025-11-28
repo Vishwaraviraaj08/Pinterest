@@ -34,6 +34,8 @@ public class User {
 
     private String bio;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String avatar;
 
     @Column(name = "mobile_number")

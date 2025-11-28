@@ -44,6 +44,16 @@ export const authService = {
     const response = await api.post<{ message: string }>('/auth/otp/verify', data);
     return response.data;
   },
+
+  searchUsers: async (keyword: string): Promise<UserResponse[]> => {
+    const response = await api.get<UserResponse[]>(`/auth/search?keyword=${keyword}`);
+    return response.data;
+  },
+
+  getUsersByIds: async (userIds: number[]): Promise<UserResponse[]> => {
+    const response = await api.post<UserResponse[]>('/auth/users/batch', userIds);
+    return response.data;
+  },
 };
 
 

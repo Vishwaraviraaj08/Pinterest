@@ -21,10 +21,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
         log.error("Custom exception: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
-            ex.getMessage(),
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value()
-        );
+                ex.getMessage(),
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -47,18 +46,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         log.error("Data integrity violation: ", ex);
         String message = "Data integrity violation";
-        if (ex.getMessage() != null) {
+        if (ex.getMessage() != null && ex.getMessage().contains("Duplicate entry")) {
             if (ex.getMessage().contains("email")) {
                 message = "Email is already in use";
             } else if (ex.getMessage().contains("username")) {
                 message = "Username is already taken";
             }
+        } else if (ex.getMessage() != null && ex.getMessage().contains("Data truncation")) {
+            message = "Data too long for one of the fields (e.g. image too large)";
         }
         ErrorResponse error = new ErrorResponse(
-            message,
-            LocalDateTime.now(),
-            HttpStatus.BAD_REQUEST.value()
-        );
+                message,
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
@@ -66,14 +66,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
         log.error("Unexpected error occurred: ", ex);
         ErrorResponse error = new ErrorResponse(
-            "An unexpected error occurred: " + ex.getMessage(),
-            LocalDateTime.now(),
-            HttpStatus.INTERNAL_SERVER_ERROR.value()
-        );
+                "An unexpected error occurred: " + ex.getMessage(),
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value());
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-
-
-
-

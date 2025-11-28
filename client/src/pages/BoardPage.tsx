@@ -6,6 +6,7 @@ import PinCard from '../components/PinCard';
 import { useBoards } from '../contexts/BoardContext';
 import { usePins } from '../contexts/PinContext';
 import { BoardRequest, BoardResponse } from '../types';
+import InviteCollaboratorModal from '../components/InviteCollaboratorModal';
 
 const BoardPage: React.FC = () => {
   const { boardId } = useParams<{ boardId: string }>();
@@ -13,6 +14,7 @@ const BoardPage: React.FC = () => {
   const { boards, fetchBoardById, selectedBoard, updateBoard, deleteBoard, isLoading: isBoardLoading, error: boardError } = useBoards();
   const [board, setBoard] = useState<BoardResponse | undefined>(undefined);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
   const [boardName, setBoardName] = useState('');
   const [boardDescription, setBoardDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -78,6 +80,11 @@ const BoardPage: React.FC = () => {
         setError(err.message || 'Failed to delete board');
       }
     }
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard!');
   };
 
   if (isBoardLoading && !board) {
@@ -169,8 +176,8 @@ const BoardPage: React.FC = () => {
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item onClick={handleEditBoard}>Edit board</Dropdown.Item>
-                <Dropdown.Item>Share board</Dropdown.Item>
-                <Dropdown.Item>Collaborate</Dropdown.Item>
+                <Dropdown.Item onClick={handleShare}>Share board</Dropdown.Item>
+                <Dropdown.Item onClick={() => setShowInviteModal(true)}>Collaborate</Dropdown.Item>
                 <Dropdown.Divider />
                 <Dropdown.Item className="text-danger" onClick={handleDeleteBoard}>Delete board</Dropdown.Item>
               </Dropdown.Menu>
@@ -238,6 +245,15 @@ const BoardPage: React.FC = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      {board && (
+        <InviteCollaboratorModal
+          show={showInviteModal}
+          onHide={() => setShowInviteModal(false)}
+          boardId={board.id}
+          boardName={board.name}
+        />
+      )}
     </>
   );
 };

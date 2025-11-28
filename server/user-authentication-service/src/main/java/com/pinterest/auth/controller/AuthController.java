@@ -2,6 +2,7 @@ package com.pinterest.auth.controller;
 
 import com.pinterest.auth.dto.*;
 import com.pinterest.auth.service.UserService;
+import java.util.List;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -55,6 +56,20 @@ public class AuthController {
             @PathVariable("userId") Long userId,
             @RequestBody UserResponse updateRequest) {
         UserResponse response = userService.updateUserProfile(userId, updateRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search users")
+    public ResponseEntity<List<UserResponse>> searchUsers(@RequestParam("keyword") String keyword) {
+        List<UserResponse> response = userService.searchUsers(keyword);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/users/batch")
+    @Operation(summary = "Get users by IDs")
+    public ResponseEntity<List<UserResponse>> getUsersByIds(@RequestBody List<Long> userIds) {
+        List<UserResponse> response = userService.getUsersByIds(userIds);
         return ResponseEntity.ok(response);
     }
 }

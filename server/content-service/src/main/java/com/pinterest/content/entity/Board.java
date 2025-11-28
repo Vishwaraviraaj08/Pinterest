@@ -47,6 +47,11 @@ public class Board {
     @ManyToMany(mappedBy = "boards")
     private Set<Pin> pins = new HashSet<>();
 
+    @ElementCollection
+    @CollectionTable(name = "board_collaborators", joinColumns = @JoinColumn(name = "board_id"))
+    @Column(name = "user_id")
+    private Set<Long> collaboratorIds = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

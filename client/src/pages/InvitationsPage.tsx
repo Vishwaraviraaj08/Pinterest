@@ -14,6 +14,8 @@ interface EnrichedInvitation extends InvitationResponse {
 const InvitationsPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [filter, setFilter] = useState<'ALL' | 'BOARD_COLLABORATION' | 'CONNECTION'>('ALL');
+  const [sort, setSort] = useState<'NEWEST' | 'OLDEST'>('NEWEST');
   const [invitations, setInvitations] = useState<EnrichedInvitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +69,14 @@ const InvitationsPage: React.FC = () => {
     }
   };
 
+  const filteredInvitations = invitations
+    .filter(inv => filter === 'ALL' || inv.invitationType === filter)
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return sort === 'NEWEST' ? dateB - dateA : dateA - dateB;
+    });
+
   if (isLoading) {
     return (
       <Container className="py-5 text-center">
@@ -77,11 +87,34 @@ const InvitationsPage: React.FC = () => {
 
   return (
     <Container className="py-4" style={{ maxWidth: '800px' }}>
-      <h4 className="mb-4 fw-bold">Inbox</h4>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="fw-bold mb-0">Inbox</h4>
+        <div className="d-flex gap-2">
+          <select
+            className="form-select form-select-sm rounded-pill"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as any)}
+            style={{ width: 'auto' }}
+          >
+            <option value="ALL">All Invitations</option>
+            <option value="BOARD_COLLABORATION">Board Invites</option>
+            <option value="CONNECTION">Connections</option>
+          </select>
+          <select
+            className="form-select form-select-sm rounded-pill"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as any)}
+            style={{ width: 'auto' }}
+          >
+            <option value="NEWEST">Newest First</option>
+            <option value="OLDEST">Oldest First</option>
+          </select>
+        </div>
+      </div>
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {invitations.length === 0 ? (
+      {filteredInvitations.length === 0 ? (
         <div className="text-center py-5 text-muted">
           <div className="mb-3">
             <Layout size={48} strokeWidth={1} />
@@ -92,7 +125,7 @@ const InvitationsPage: React.FC = () => {
       ) : (
         <Row>
           <Col>
-            {invitations.map((inv) => (
+            {filteredInvitations.map((inv) => (
               <Card key={inv.id} className="mb-3 border-0 shadow-sm">
                 <Card.Body>
                   <div className="d-flex align-items-center">
@@ -115,7 +148,7 @@ const InvitationsPage: React.FC = () => {
                         </span>
                         {' '}
                         <span className="fw-normal text-muted">
-                          invited you to
+                          (<span className="fw-bold">@{inv.inviter?.username}</span>) invited you to
                           {inv.invitationType === 'BOARD_COLLABORATION' ? ' collaborate on a board' : ' connect'}
                         </span>
                       </h6>

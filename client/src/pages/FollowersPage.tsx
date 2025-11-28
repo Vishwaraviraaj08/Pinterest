@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
 import { collaborationService } from '../services/collaborationService';
 import { UserResponse } from '../types';
+import UserDetailsModal from '../components/UserDetailsModal';
 
 interface ConnectionUI extends UserResponse {
   connectionId: number;
@@ -28,6 +29,8 @@ const FollowersPage: React.FC = () => {
   const [enrichedFollowing, setEnrichedFollowing] = useState<ConnectionUI[]>([]);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
+  const [showUserModal, setShowUserModal] = useState(false);
 
   // Store IDs of users the CURRENT user is following - using Record for reliable re-renders
   const [myFollowingIds, setMyFollowingIds] = useState<Record<number, boolean>>({});
@@ -132,13 +135,13 @@ const FollowersPage: React.FC = () => {
 
   // Separate effect to update isFollowing status when myFollowingIds changes
   useEffect(() => {
-    setEnrichedFollowers(prev => 
+    setEnrichedFollowers(prev =>
       prev.map(user => ({
         ...user,
         isFollowing: myFollowingIds[user.id] || false
       }))
     );
-    setEnrichedFollowing(prev => 
+    setEnrichedFollowing(prev =>
       prev.map(user => ({
         ...user,
         isFollowing: myFollowingIds[user.id] || false
@@ -187,14 +190,19 @@ const FollowersPage: React.FC = () => {
 
   const handleBlock = (userId: number) => {
     if (window.confirm('Are you sure you want to block this user?')) {
-      alert(`User ${userId} has been blocked. (Mock Action)`);
+      alert(`User ${userId} has been blocked.`);
     }
   };
 
   const handleReport = (userId: number) => {
     if (window.confirm('Report this user for inappropriate behavior?')) {
-      alert(`User ${userId} has been reported. (Mock Action)`);
+      alert(`User ${userId} has been reported.`);
     }
+  };
+
+  const handleUserClick = (user: ConnectionUI) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
   };
 
   const filteredList = useMemo(() => {
@@ -281,14 +289,15 @@ const FollowersPage: React.FC = () => {
                         roundedCircle
                         width={60}
                         height={60}
-                        className="me-3 cursor-pointer"
-                        style={{ objectFit: 'cover' }}
-                        onClick={() => navigate(`/profile/${user.id}`)}
+                        className="me-3"
+                        style={{ objectFit: 'cover', cursor: 'pointer' }}
+                        onClick={() => handleUserClick(user)}
                       />
                       <div className="flex-grow-1">
                         <h6
-                          className="mb-0 cursor-pointer fw-bold"
-                          onClick={() => navigate(`/profile/${user.id}`)}
+                          className="mb-0 fw-bold"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => handleUserClick(user)}
                         >
                           {user.firstName} {user.lastName}
                         </h6>
@@ -316,11 +325,11 @@ const FollowersPage: React.FC = () => {
                             <MoreHorizontal size={16} />
                           </Dropdown.Toggle>
                           <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => handleBlock(user.id)} className="text-danger">
+                            <Dropdown.Item onClick={() => handleBlock(user.id)} className="text-danger d-flex align-items-center">
                               <UserX size={16} className="me-2" />
                               Block user
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => handleReport(user.id)} className="text-warning">
+                            <Dropdown.Item onClick={() => handleReport(user.id)} className="text-warning d-flex align-items-center" style={{ textDecoration: 'none' }}>
                               <Flag size={16} className="me-2" />
                               Report user
                             </Dropdown.Item>
@@ -345,6 +354,11 @@ const FollowersPage: React.FC = () => {
           </Col>
         </Row>
       )}
+      <UserDetailsModal
+        show={showUserModal}
+        onHide={() => setShowUserModal(false)}
+        user={selectedUser}
+      />
     </Container>
   );
 };

@@ -78,4 +78,11 @@ public class BoardController {
         boardService.addPinToBoard(boardId, pinId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/{boardId}/collaborators/{userId}")
+    public ResponseEntity<Void> addCollaborator(@PathVariable("boardId") Long boardId,
+            @PathVariable("userId") Long userId) {
+        boardService.addCollaborator(boardId, userId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -28,6 +28,7 @@ const ProfilePage: React.FC = () => {
     firstName: '',
     lastName: '',
     bio: '',
+    avatar: '',
   });
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -87,6 +88,7 @@ const ProfilePage: React.FC = () => {
             firstName: currentUser.firstName,
             lastName: currentUser.lastName,
             bio: currentUser.bio || '',
+            avatar: currentUser.avatar || '',
           });
         } else {
           const data = await authService.getProfile(parsedUserId);
@@ -147,6 +149,17 @@ const ProfilePage: React.FC = () => {
       if (currentUser) fetchFollowing(currentUser.id);
     } catch (error) {
       console.error('Failed to toggle follow:', error);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditForm({ ...editForm, avatar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -395,6 +408,23 @@ const ProfilePage: React.FC = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Profile Picture</Form.Label>
+              <div className="d-flex align-items-center gap-3">
+                <Image
+                  src={editForm.avatar || profileUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileUser?.username}`}
+                  roundedCircle
+                  width={60}
+                  height={60}
+                  style={{ objectFit: 'cover' }}
+                />
+                <Form.Control
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+              </div>
+            </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>First Name</Form.Label>
               <Form.Control
