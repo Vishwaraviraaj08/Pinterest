@@ -27,7 +27,17 @@ public class BusinessProfile {
 
     private String website;
 
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String logo;
+
+    private String category;
+
+    @Column(name = "followers_count")
+    private Integer followersCount = 0;
+
+    @Column(name = "is_verified")
+    private Boolean isVerified = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -46,7 +56,3 @@ public class BusinessProfile {
         updatedAt = LocalDateTime.now();
     }
 }
-
-
-
-

@@ -15,8 +15,5 @@ public class BusinessProfileRequest {
     private String description;
     private String website;
     private String logo;
+    private String category;
 }
-
-
-
-

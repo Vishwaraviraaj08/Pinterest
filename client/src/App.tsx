@@ -23,7 +23,9 @@ import InvitationsPage from './pages/InvitationsPage';
 
 
 import ConnectionsPage from './pages/ConnectionsPage';
-import BusinessProfilesPage from './pages/BusinessProfilesPage';
+import BusinessHubPage from './pages/BusinessHubPage';
+import BusinessProfilePage from './pages/BusinessProfilePage';
+import ScrollToTop from './components/ScrollToTop';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/globals.css';
 
@@ -58,6 +60,7 @@ const App: React.FC = () => {
           <ConnectionProvider>
             <InvitationProvider>
               <Router>
+                <ScrollToTop />
                 <div className="app-container">
                   <Routes>
                     {/* ... existing routes ... */}
@@ -150,11 +153,21 @@ const App: React.FC = () => {
                       }
                     />
                     <Route
-                      path="/business-profiles"
+                      path="/business"
                       element={
                         <ProtectedRoute>
                           <AppLayout>
-                            <BusinessProfilesPage />
+                            <BusinessHubPage />
+                          </AppLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/business/:id"
+                      element={
+                        <ProtectedRoute>
+                          <AppLayout>
+                            <BusinessProfilePage />
                           </AppLayout>
                         </ProtectedRoute>
                       }

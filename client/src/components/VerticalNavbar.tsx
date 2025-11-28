@@ -22,7 +22,7 @@ const VerticalNavbar: React.FC = () => {
   const menuItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: LayoutGrid, label: 'Boards', path: '/boards' },
-    { icon: Briefcase, label: 'Business', path: '/business-profiles' },
+    { icon: Briefcase, label: 'Business', path: '/business' },
     { icon: Users, label: 'Connections', path: '/connections' },
     { icon: Bell, label: 'Notifications', path: '/invitations', badge: 2 },
     { icon: Plus, label: 'Create', path: '/create-pin' },

@@ -17,12 +17,9 @@ public class BoardResponse {
     private Long userId;
     private Boolean isPrivate;
     private String coverImage;
+    private String boardType;
     private Integer pinCount;
     private List<PinResponse> pins;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-
-
-
-

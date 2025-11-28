@@ -79,6 +79,8 @@ public class BoardService {
             board.setDescription(request.getDescription());
         if (request.getIsPrivate() != null)
             board.setIsPrivate(request.getIsPrivate());
+        if (request.getBoardType() != null)
+            board.setBoardType(request.getBoardType());
 
         board = boardRepository.save(board);
         return mapToBoardResponse(board);

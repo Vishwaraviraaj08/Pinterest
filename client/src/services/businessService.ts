@@ -21,6 +21,20 @@ export const businessService = {
     const response = await api.put<BusinessProfileResponse>(`/business/profiles/${businessId}`, profileData);
     return response.data;
   },
+
+  async searchBusinessProfiles(keyword: string): Promise<BusinessProfileResponse[]> {
+    const response = await api.get<BusinessProfileResponse[]>(`/business/profiles/search?keyword=${keyword}`);
+    return response.data;
+  },
+
+  async getProfileByUserId(userId: number): Promise<BusinessProfileResponse | null> {
+    try {
+      const response = await api.get<BusinessProfileResponse>(`/business/profiles/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  },
 };
 
 export default businessService;

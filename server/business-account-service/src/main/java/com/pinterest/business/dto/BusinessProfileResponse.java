@@ -16,10 +16,9 @@ public class BusinessProfileResponse {
     private String description;
     private String website;
     private String logo;
+    private String category;
+    private Integer followersCount;
+    private Boolean isVerified;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
-
-
-
-

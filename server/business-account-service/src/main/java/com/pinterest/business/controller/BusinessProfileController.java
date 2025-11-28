@@ -38,12 +38,31 @@ public class BusinessProfileController {
 
     @GetMapping("/{businessId}")
     @Operation(summary = "Get business profile by ID")
-    public ResponseEntity<BusinessProfileResponse> getProfile(@PathVariable Long businessId) {
+    public ResponseEntity<BusinessProfileResponse> getProfile(@PathVariable("businessId") Long businessId) {
         BusinessProfileResponse response = service.getProfile(businessId);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/search")
+    @Operation(summary = "Search business profiles")
+    public ResponseEntity<List<BusinessProfileResponse>> searchProfiles(@RequestParam("keyword") String keyword) {
+        List<BusinessProfileResponse> response = service.searchProfiles(keyword);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "Get business profile by User ID")
+    public ResponseEntity<BusinessProfileResponse> getProfileByUserId(@PathVariable("userId") Long userId) {
+        BusinessProfileResponse response = service.getProfileByUserId(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{businessId}")
+    @Operation(summary = "Update business profile")
+    public ResponseEntity<BusinessProfileResponse> updateProfile(
+            @PathVariable("businessId") Long businessId,
+            @Valid @RequestBody BusinessProfileRequest request) {
+        BusinessProfileResponse response = service.updateProfile(businessId, request);
+        return ResponseEntity.ok(response);
+    }
 }
-
-
-
-

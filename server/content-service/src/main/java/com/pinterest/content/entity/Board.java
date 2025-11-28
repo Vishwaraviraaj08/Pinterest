@@ -34,6 +34,9 @@ public class Board {
     @Column(name = "is_private")
     private Boolean isPrivate = false;
 
+    @Column(name = "board_type")
+    private String boardType = "DEFAULT"; // DEFAULT, SHOWCASE
+
     @Lob
     @Column(name = "cover_image", columnDefinition = "LONGTEXT")
     private String coverImage;

@@ -40,8 +40,40 @@ public class BusinessProfileService {
                 .orElseThrow(() -> new CustomException("Business profile not found"));
         return modelMapper.map(profile, BusinessProfileResponse.class);
     }
+
+    @Transactional(readOnly = true)
+    public List<BusinessProfileResponse> searchProfiles(String keyword) {
+        return repository.searchProfiles(keyword).stream()
+                .map(p -> modelMapper.map(p, BusinessProfileResponse.class))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public BusinessProfileResponse getProfileByUserId(Long userId) {
+        List<BusinessProfile> profiles = repository.findByUserId(userId);
+        if (profiles.isEmpty()) {
+            return null;
+        }
+        // Return the first one if duplicates exist
+        return modelMapper.map(profiles.get(0), BusinessProfileResponse.class);
+    }
+
+    @Transactional
+    public BusinessProfileResponse updateProfile(Long businessId, BusinessProfileRequest request) {
+        BusinessProfile profile = repository.findById(businessId)
+                .orElseThrow(() -> new CustomException("Business profile not found"));
+
+        profile.setBusinessName(request.getBusinessName());
+        profile.setDescription(request.getDescription());
+        profile.setWebsite(request.getWebsite());
+        if (request.getLogo() != null && !request.getLogo().isEmpty()) {
+            profile.setLogo(request.getLogo());
+        }
+        if (request.getCategory() != null) {
+            profile.setCategory(request.getCategory());
+        }
+
+        profile = repository.save(profile);
+        return modelMapper.map(profile, BusinessProfileResponse.class);
+    }
 }
-
-
-
-

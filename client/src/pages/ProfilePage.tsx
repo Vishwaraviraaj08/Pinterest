@@ -60,7 +60,7 @@ const ProfilePage: React.FC = () => {
   }, [pins, searchQuery, sortBy]);
 
   const filteredBoards = useMemo(() => {
-    let result = [...boards];
+    let result = boards.filter(board => board.boardType !== 'SHOWCASE');
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(board =>

@@ -17,4 +17,6 @@ public class BoardRequest {
     private Boolean isPrivate = false;
 
     private String coverImage;
+
+    private String boardType = "DEFAULT";
 }

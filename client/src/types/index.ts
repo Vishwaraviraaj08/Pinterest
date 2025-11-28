@@ -80,6 +80,7 @@ export interface BoardResponse {
     pins?: PinResponse[];
     createdAt: string;
     updatedAt: string;
+    boardType?: string;
 }
 
 export interface BoardRequest {
@@ -87,6 +88,7 @@ export interface BoardRequest {
     description?: string;
     isPrivate?: boolean;
     coverImage?: string;
+    boardType?: string;
 }
 
 export interface ConnectionResponse {
@@ -120,6 +122,9 @@ export interface BusinessProfileResponse {
     description?: string;
     website?: string;
     logo?: string;
+    category?: string;
+    followersCount?: number;
+    isVerified?: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -129,6 +134,7 @@ export interface BusinessProfileRequest {
     description?: string;
     website?: string;
     logo?: string;
+    category?: string;
 }
 
 export interface ApiError {

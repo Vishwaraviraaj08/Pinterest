@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useBoards } from '../contexts/BoardContext';
+import { useAuth } from '../contexts/AuthContext';
+import { businessService } from '../services/businessService';
 import { BoardRequest } from '../types';
 
 interface CreateBoardModalProps {
   show: boolean;
   onHide: () => void;
   onBoardCreated?: () => void;
+  initialBoardType?: 'DEFAULT' | 'SHOWCASE';
 }
 
-const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoardCreated }) => {
+const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoardCreated, initialBoardType = 'DEFAULT' }) => {
   const { createBoard } = useBoards();
+  const { user } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasBusinessProfile, setHasBusinessProfile] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -20,7 +25,21 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoa
     isPrivate: false,
     isCollaborative: false,
     coverImage: '',
+    boardType: initialBoardType,
   });
+
+  useEffect(() => {
+    const checkBusinessProfile = async () => {
+      if (user?.id) {
+        const profile = await businessService.getProfileByUserId(user.id);
+        setHasBusinessProfile(!!profile);
+      }
+    };
+    if (show) {
+      checkBusinessProfile();
+      setFormData(prev => ({ ...prev, boardType: initialBoardType }));
+    }
+  }, [show, user?.id, initialBoardType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +52,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoa
         description: formData.description,
         isPrivate: formData.isPrivate,
         coverImage: formData.coverImage,
+        boardType: formData.boardType,
       };
 
       await createBoard(request);
@@ -43,6 +63,7 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoa
         isPrivate: false,
         isCollaborative: false,
         coverImage: '',
+        boardType: 'DEFAULT',
       });
 
       if (onBoardCreated) {
@@ -74,6 +95,33 @@ const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ show, onHide, onBoa
               required
             />
           </Form.Group>
+
+          {hasBusinessProfile && (
+            <Form.Group className="mb-3">
+              <Form.Label>Board Type</Form.Label>
+              <div className="d-flex gap-3">
+                <Form.Check
+                  type="radio"
+                  id="type-default"
+                  label="Regular Board"
+                  name="boardType"
+                  checked={formData.boardType === 'DEFAULT'}
+                  onChange={() => setFormData({ ...formData, boardType: 'DEFAULT' })}
+                />
+                <Form.Check
+                  type="radio"
+                  id="type-showcase"
+                  label="Showcase"
+                  name="boardType"
+                  checked={formData.boardType === 'SHOWCASE'}
+                  onChange={() => setFormData({ ...formData, boardType: 'SHOWCASE' })}
+                />
+              </div>
+              <Form.Text className="text-muted">
+                Showcases are curated collections featured on your business profile.
+              </Form.Text>
+            </Form.Group>
+          )}
 
           <Form.Group className="mb-3">
             <Form.Check
