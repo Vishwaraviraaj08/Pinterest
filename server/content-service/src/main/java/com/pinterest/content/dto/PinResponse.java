@@ -27,4 +27,7 @@ public class PinResponse {
     private List<String> keywords;
     private LocalDateTime updatedAt;
     private Long parentPinId;
+    private String promotionLink;
+    private Long campaignId;
+    private String sponsorName;
 }

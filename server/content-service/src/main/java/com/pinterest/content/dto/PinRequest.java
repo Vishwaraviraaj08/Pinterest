@@ -30,4 +30,12 @@ public class PinRequest {
     private List<String> keywords;
 
     private Long parentPinId;
+
+    private Boolean isSponsored;
+
+    private String promotionLink;
+
+    private Long campaignId;
+
+    private String sponsorName;
 }

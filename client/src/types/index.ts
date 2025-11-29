@@ -48,6 +48,10 @@ export interface PinRequest {
     isDraft?: boolean;
     keywords?: string[];
     parentPinId?: number;
+    isSponsored?: boolean;
+    promotionLink?: string;
+    campaignId?: number;
+    sponsorName?: string;
 }
 
 export interface PinResponse {
@@ -67,6 +71,9 @@ export interface PinResponse {
     updatedAt: string;
     keywords?: string[];
     parentPinId?: number;
+    promotionLink?: string;
+    campaignId?: number;
+    sponsorName?: string;
 }
 
 export interface BoardResponse {

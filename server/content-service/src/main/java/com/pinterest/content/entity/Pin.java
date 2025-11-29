@@ -59,6 +59,15 @@ public class Pin {
     @Column(name = "is_sponsored")
     private Boolean isSponsored = false;
 
+    @Column(name = "promotion_link")
+    private String promotionLink;
+
+    @Column(name = "campaign_id")
+    private Long campaignId;
+
+    @Column(name = "sponsor_name")
+    private String sponsorName;
+
     @Column(name = "saves_count")
     private Integer savesCount = 0;
 

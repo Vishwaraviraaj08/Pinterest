@@ -4,29 +4,102 @@ import { Search, Briefcase, Plus, TrendingUp, CheckCircle, ExternalLink } from '
 import { useNavigate } from 'react-router-dom';
 import { businessService } from '../services/businessService';
 import { collaborationService } from '../services/collaborationService';
-import { BusinessProfileResponse } from '../types';
+import { contentService } from '../services/contentService';
+import { BusinessProfileResponse, Pin } from '../types';
 import CreateBusinessProfileModal from '../components/CreateBusinessProfileModal';
+import CreateSponsoredPinModal from '../components/CreateSponsoredPinModal';
+import SponsoredPinCard from '../components/SponsoredPinCard';
+import SponsoredPinDetailModal from '../components/SponsoredPinDetailModal';
 import { useAuth } from '../contexts/AuthContext';
 
 const BusinessHubPage: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [profiles, setProfiles] = useState<BusinessProfileResponse[]>([]);
+    const [sponsoredPins, setSponsoredPins] = useState<Pin[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [keyword, setKeyword] = useState('');
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showSponsoredModal, setShowSponsoredModal] = useState(false);
+    const [editingPin, setEditingPin] = useState<Pin | null>(null);
+    const [selectedSponsoredPin, setSelectedSponsoredPin] = useState<Pin | null>(null);
     const [userHasProfile, setUserHasProfile] = useState(false);
     const [activeTab, setActiveTab] = useState('profiles');
 
+    const [followingIds, setFollowingIds] = useState<Set<number>>(new Set());
+
     useEffect(() => {
-        fetchProfiles();
+        if (activeTab === 'profiles') {
+            fetchProfiles();
+        } else if (activeTab === 'sponsored') {
+            fetchSponsoredPins();
+        }
         checkUserProfile();
-    }, [user?.id]);
+        if (user?.id) {
+            fetchFollowing();
+        }
+    }, [user?.id, activeTab]);
+
+    const fetchFollowing = async () => {
+        if (!user?.id) return;
+        try {
+            const following = await collaborationService.getFollowing(user.id);
+            setFollowingIds(new Set(following.map(f => f.followingId)));
+        } catch (error) {
+            console.error('Failed to fetch following', error);
+        }
+    };
+
+    const handleFollowUser = async (userId: number) => {
+        if (!user?.id) return;
+        try {
+            if (followingIds.has(userId)) {
+                await collaborationService.unfollowUser(userId);
+                setFollowingIds(prev => {
+                    const next = new Set(prev);
+                    next.delete(userId);
+                    return next;
+                });
+            } else {
+                await collaborationService.followUser(userId);
+                setFollowingIds(prev => {
+                    const next = new Set(prev);
+                    next.add(userId);
+                    return next;
+                });
+            }
+        } catch (error) {
+            console.error('Failed to toggle follow', error);
+        }
+    };
 
     const checkUserProfile = async () => {
         if (user?.id) {
             const profile = await businessService.getProfileByUserId(user.id);
             setUserHasProfile(!!profile);
+        }
+    };
+
+    const fetchSponsoredPins = async () => {
+        setIsLoading(true);
+        try {
+            const data = await contentService.getSponsoredPins();
+            setSponsoredPins(data);
+        } catch (error) {
+            console.error('Failed to fetch sponsored pins', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleDeleteSponsoredPin = async (pinId: number) => {
+        if (window.confirm('Are you sure you want to delete this campaign?')) {
+            try {
+                await contentService.deletePin(pinId);
+                fetchSponsoredPins();
+            } catch (error) {
+                console.error('Failed to delete pin', error);
+            }
         }
     };
 
@@ -232,10 +305,65 @@ const BusinessHubPage: React.FC = () => {
             )}
 
             {activeTab === 'sponsored' && (
-                <div className="text-center py-5 text-muted">
-                    <TrendingUp size={48} className="mb-3" />
-                    <h5>Sponsored Pins Coming Soon</h5>
-                    <p>Explore promoted content from top brands.</p>
+                <div>
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 className="fw-bold mb-1">Active Campaigns</h5>
+                            <p className="text-muted mb-0">Manage your sponsored content and track performance</p>
+                        </div>
+                        <Button
+                            variant="danger"
+                            className="rounded-pill fw-bold d-flex align-items-center"
+                            onClick={() => {
+                                setEditingPin(null);
+                                setShowSponsoredModal(true);
+                            }}
+                        >
+                            <Plus size={18} className="me-2" />
+                            Create Campaign
+                        </Button>
+                    </div>
+
+                    {isLoading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="danger" />
+                        </div>
+                    ) : sponsoredPins.length > 0 ? (
+                        <Row xs={1} md={2} lg={3} xl={4} className="g-4">
+                            {sponsoredPins.map(pin => (
+                                <Col key={pin.id}>
+                                    <SponsoredPinCard
+                                        pin={pin}
+                                        isOwner={pin.userId === user?.id}
+                                        isFollowing={followingIds.has(pin.userId)}
+                                        onEdit={(p: Pin) => {
+                                            setEditingPin(p);
+                                            setShowSponsoredModal(true);
+                                        }}
+                                        onDelete={handleDeleteSponsoredPin}
+                                        onFollow={handleFollowUser}
+                                        onClick={(p: Pin) => setSelectedSponsoredPin(p)}
+                                    />
+                                </Col>
+                            ))}
+                        </Row>
+                    ) : (
+                        <div className="text-center py-5 bg-light rounded-3">
+                            <TrendingUp size={48} className="mb-3 text-muted" />
+                            <h5>No Active Campaigns</h5>
+                            <p className="text-muted mb-4">Start promoting your business to reach more customers.</p>
+                            <Button
+                                variant="outline-danger"
+                                className="rounded-pill fw-bold"
+                                onClick={() => {
+                                    setEditingPin(null);
+                                    setShowSponsoredModal(true);
+                                }}
+                            >
+                                Create First Campaign
+                            </Button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -247,6 +375,27 @@ const BusinessHubPage: React.FC = () => {
                     checkUserProfile();
                 }}
             />
+
+            <CreateSponsoredPinModal
+                show={showSponsoredModal}
+                onHide={() => setShowSponsoredModal(false)}
+                onSuccess={() => {
+                    fetchSponsoredPins();
+                    setShowSponsoredModal(false);
+                }}
+                editingPin={editingPin}
+            />
+
+            {selectedSponsoredPin && (
+                <SponsoredPinDetailModal
+                    show={!!selectedSponsoredPin}
+                    onHide={() => setSelectedSponsoredPin(null)}
+                    pin={selectedSponsoredPin}
+                    isOwner={selectedSponsoredPin.userId === user?.id}
+                    isFollowing={followingIds.has(selectedSponsoredPin.userId)}
+                    onFollow={handleFollowUser}
+                />
+            )}
         </Container>
     );
 };

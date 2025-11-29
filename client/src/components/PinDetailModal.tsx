@@ -208,6 +208,31 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                 {/* Description */}
                 <p className="text-secondary mb-3">{pin.description}</p>
 
+                {/* Sponsored Info */}
+                {pin.isSponsored && (
+                  <div className="mb-3 p-3 bg-light rounded">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <small className="text-muted d-block">Sponsored by</small>
+                        <span className="fw-bold">{pin.sponsorName || 'Unknown Sponsor'}</span>
+                        {pin.campaignId && <small className="text-muted d-block">Campaign ID: {pin.campaignId}</small>}
+                      </div>
+                      {pin.promotionLink && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          href={pin.promotionLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-pill"
+                        >
+                          Visit Site
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Stats */}
                 <div className="d-flex gap-4 mb-3" style={{ fontSize: '14px', color: '#4a5565' }}>
                   <span>{pin.savesCount || 0} saves</span>

@@ -75,6 +75,12 @@ public class PinService {
     }
 
     @Transactional(readOnly = true)
+    public List<PinResponse> getSponsoredPins() {
+        List<Pin> pins = pinRepository.findByIsSponsoredTrue();
+        return deduplicatePins(pins);
+    }
+
+    @Transactional(readOnly = true)
     public List<PinResponse> searchPins(String keyword) {
         List<Pin> pins = pinRepository.searchPins(keyword);
         return deduplicatePins(pins);
@@ -103,6 +109,14 @@ public class PinService {
             pin.setIsPublic(request.getIsPublic());
         if (request.getIsDraft() != null)
             pin.setIsDraft(request.getIsDraft());
+        if (request.getIsSponsored() != null)
+            pin.setIsSponsored(request.getIsSponsored());
+        if (request.getPromotionLink() != null)
+            pin.setPromotionLink(request.getPromotionLink());
+        if (request.getCampaignId() != null)
+            pin.setCampaignId(request.getCampaignId());
+        if (request.getSponsorName() != null)
+            pin.setSponsorName(request.getSponsorName());
 
         if (request.getKeywords() != null) {
             pin.setKeywords(String.join(",", request.getKeywords()));

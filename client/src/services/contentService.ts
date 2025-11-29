@@ -28,6 +28,11 @@ export const contentService = {
     return response.data;
   },
 
+  getSponsoredPins: async (): Promise<PinResponse[]> => {
+    const response = await api.get<PinResponse[]>('/content/pins/sponsored');
+    return response.data;
+  },
+
   searchPins: async (keyword: string): Promise<PinResponse[]> => {
     const response = await api.get<PinResponse[]>(`/content/pins/search?keyword=${keyword}`);
     return response.data;

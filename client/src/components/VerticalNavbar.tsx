@@ -24,7 +24,8 @@ const VerticalNavbar: React.FC = () => {
     { icon: LayoutGrid, label: 'Boards', path: '/boards' },
     { icon: Briefcase, label: 'Business', path: '/business' },
     { icon: Users, label: 'Connections', path: '/connections' },
-    { icon: Bell, label: 'Notifications', path: '/invitations', badge: 2 },
+    { icon: Bell, label: 'Notifications', path: '/invitations' },
+    // { icon: Briefcase, label: 'Advertising', path: '/sponsored' },
     { icon: Plus, label: 'Create', path: '/create-pin' },
   ];
 
@@ -96,27 +97,6 @@ const VerticalNavbar: React.FC = () => {
             >
               <div style={{ position: 'relative', width: '24px', height: '24px' }}>
                 <Icon size={24} />
-                {item.badge && (
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: '-5px',
-                      right: '-5px',
-                      backgroundColor: '#e60023',
-                      color: '#fff',
-                      borderRadius: '50%',
-                      width: '18px',
-                      height: '18px',
-                      fontSize: '10px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: '600',
-                    }}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </div>
               {isExpanded && (
                 <span

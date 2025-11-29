@@ -58,6 +58,13 @@ public class PinController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/sponsored")
+    @Operation(summary = "Get all sponsored pins")
+    public ResponseEntity<List<PinResponse>> getSponsoredPins() {
+        List<PinResponse> response = pinService.getSponsoredPins();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/search")
     @Operation(summary = "Search pins")
     public ResponseEntity<List<PinResponse>> searchPins(@RequestParam("keyword") String keyword) {
