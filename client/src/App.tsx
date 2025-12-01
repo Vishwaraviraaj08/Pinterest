@@ -8,6 +8,7 @@ import { InvitationProvider } from './contexts/InvitationContext';
 import VerticalNavbar from './components/VerticalNavbar';
 import TopNavbar from './components/TopNavbar';
 import HomePage from './pages/HomePage';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -33,6 +34,12 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
+
+const LandingPageOrHome: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <HomePage /> : <LandingPage />;
+};
+
 
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -95,11 +102,9 @@ const App: React.FC = () => {
                     <Route
                       path="/"
                       element={
-                        <ProtectedRoute>
-                          <AppLayout>
-                            <HomePage />
-                          </AppLayout>
-                        </ProtectedRoute>
+                        <AppLayout>
+                          <LandingPageOrHome />
+                        </AppLayout>
                       }
                     />
                     <Route

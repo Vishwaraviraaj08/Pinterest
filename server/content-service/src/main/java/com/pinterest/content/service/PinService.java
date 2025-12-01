@@ -34,11 +34,26 @@ public class PinService {
             pin.setKeywords(String.join(",", request.getKeywords()));
         }
 
-        if (request.getParentPinId() != null) {
-            pin.setParentPinId(request.getParentPinId());
+        // Ensure default values are set correctly
+        if (request.getIsSponsored() == null) {
+            pin.setIsSponsored(false);
         }
 
+        if (request.getParentPinId() != null) {
+            pin.setParentPinId(request.getParentPinId());
+        } else {
+            pin.setParentPinId(null);
+        }
+
+        // Log pin details before saving for debugging
+        log.info("Creating pin - Title: {}, UserId: {}, IsPublic: {}, IsDraft: {}, IsSponsored: {}, ParentPinId: {}",
+                pin.getTitle(), pin.getUserId(), pin.getIsPublic(), pin.getIsDraft(),
+                pin.getIsSponsored(), pin.getParentPinId());
+
         pin = pinRepository.save(pin);
+
+        log.info("Pin created successfully - ID: {}, Title: {}", pin.getId(), pin.getTitle());
+
         return mapToResponse(pin);
     }
 

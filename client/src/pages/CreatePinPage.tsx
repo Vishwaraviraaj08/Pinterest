@@ -83,6 +83,7 @@ const CreatePinPage: React.FC = () => {
         boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
         isPublic: formData.isPublic,
         isDraft: true,
+        isSponsored: false,
         keywords: formData.keywords,
       };
 
@@ -116,6 +117,7 @@ const CreatePinPage: React.FC = () => {
         boardId: formData.boardId ? parseInt(formData.boardId) : undefined,
         isPublic: formData.isPublic,
         isDraft: false,
+        isSponsored: false,
         keywords: formData.keywords,
       };
 
