@@ -125,11 +125,11 @@ public class BoardService {
     private BoardResponse mapToBoardResponse(Board board) {
         BoardResponse response = modelMapper.map(board, BoardResponse.class);
 
-        // Fetch pins from both relationships
+        
         List<Pin> pinsFromColumn = pinRepository.findByBoardId(board.getId());
         List<Pin> pinsFromJoinTable = pinRepository.findByBoardsId(board.getId());
 
-        // Combine and deduplicate
+        
         java.util.Set<Pin> allPins = new java.util.HashSet<>();
         allPins.addAll(pinsFromColumn);
         allPins.addAll(pinsFromJoinTable);

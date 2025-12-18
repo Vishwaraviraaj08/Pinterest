@@ -36,7 +36,7 @@ public class UserService {
                 throw new CustomException("Email is already in use");
             }
 
-            // Auto-generate username from email if not provided
+            
             String username = request.getUsername();
             if (username == null || username.trim().isEmpty()) {
                 username = request.getEmail().split("@")[0];
@@ -52,7 +52,7 @@ public class UserService {
             user.setUsername(username);
             user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-            // Handle optional fields
+            
             user.setFirstName(request.getFirstName() != null ? request.getFirstName() : "");
             user.setLastName(request.getLastName() != null ? request.getLastName() : "");
             user.setMobileNumber(request.getMobileNumber());
@@ -121,7 +121,7 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new CustomException("User not found with the provided email"));
 
-        // Removed mobile number verification as per requirement
+        
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);

@@ -31,14 +31,14 @@ public class OtpController {
             return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
         }
 
-        // Removed mobile number check as per requirement
+        
 
         String otp = otpService.generateOtp(request.getEmail());
 
-        // In a real app, we would send SMS/Email. Here we return it for simulation.
+        
         Map<String, String> response = new HashMap<>();
         response.put("message", "OTP generated successfully");
-        response.put("otp", otp); // Returning OTP for simulation as requested
+        response.put("otp", otp); 
 
         return ResponseEntity.ok(response);
     }

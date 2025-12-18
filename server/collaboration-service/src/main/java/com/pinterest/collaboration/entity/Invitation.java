@@ -27,10 +27,10 @@ public class Invitation {
     private Long inviteeId;
 
     @Column(name = "invitation_type")
-    private String invitationType; // BOARD_COLLABORATION, CONNECTION
+    private String invitationType; 
 
     @Column(name = "status")
-    private String status = "PENDING"; // PENDING, ACCEPTED, DECLINED, IGNORED
+    private String status = "PENDING"; 
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

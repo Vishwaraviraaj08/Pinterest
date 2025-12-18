@@ -34,10 +34,10 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
 
-            // CORS is handled by global configuration in application.yml
-            // No need to manually add CORS headers here
+            
+            
 
-            // Skip authentication for auth endpoints
+            
             if (request.getURI().getPath().startsWith("/api/auth")) {
                 log.debug("Skipping JWT authentication for auth endpoint: {}", request.getURI().getPath());
                 return chain.filter(exchange);
@@ -66,7 +66,7 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
                 String userId = claims.get("userId", Long.class).toString();
                 String email = claims.getSubject();
 
-                // Add user info to request headers
+                
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Id", userId)
                         .header("X-User-Email", email)
@@ -87,6 +87,6 @@ public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAut
     }
 
     public static class Config {
-        // Configuration properties if needed
+        
     }
 }

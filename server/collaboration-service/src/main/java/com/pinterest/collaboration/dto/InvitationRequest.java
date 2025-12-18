@@ -16,7 +16,7 @@ public class InvitationRequest {
     private Long boardId;
 
     @NotBlank(message = "Please provide a valid invitation type")
-    private String invitationType; // BOARD_COLLABORATION, CONNECTION
+    private String invitationType; 
 }
 
 

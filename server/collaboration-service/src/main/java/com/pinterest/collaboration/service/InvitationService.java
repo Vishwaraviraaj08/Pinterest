@@ -64,11 +64,11 @@ public class InvitationService {
                     throw new CustomException("Failed to add collaborator to board: " + e.getMessage());
                 }
             } else if ("CONNECTION".equals(invitation.getInvitationType())) {
-                // Invitee follows Inviter
+                
                 try {
                     connectionService.followUser(userId, invitation.getInviterId());
                 } catch (Exception e) {
-                    // Ignore if already following
+                    
                 }
             }
         }

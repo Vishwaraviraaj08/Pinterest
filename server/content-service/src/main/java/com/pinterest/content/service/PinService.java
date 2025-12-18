@@ -29,12 +29,12 @@ public class PinService {
         Pin pin = modelMapper.map(request, Pin.class);
         pin.setUserId(userId);
 
-        // Handle keywords conversion
+        
         if (request.getKeywords() != null) {
             pin.setKeywords(String.join(",", request.getKeywords()));
         }
 
-        // Ensure default values are set correctly
+        
         if (request.getIsSponsored() == null) {
             pin.setIsSponsored(false);
         }
@@ -45,7 +45,7 @@ public class PinService {
             pin.setParentPinId(null);
         }
 
-        // Log pin details before saving for debugging
+        
         log.info("Creating pin - Title: {}, UserId: {}, IsPublic: {}, IsDraft: {}, IsSponsored: {}, ParentPinId: {}",
                 pin.getTitle(), pin.getUserId(), pin.getIsPublic(), pin.getIsDraft(),
                 pin.getIsSponsored(), pin.getParentPinId());
@@ -164,8 +164,8 @@ public class PinService {
     }
 
     private List<PinResponse> deduplicatePins(List<Pin> pins) {
-        // Use a map to keep only unique pins based on imageUrl
-        // If multiple pins have the same image, keep the first one encountered
+        
+        
         return pins.stream()
                 .filter(pin -> pin.getImageUrl() != null)
                 .collect(Collectors.toMap(

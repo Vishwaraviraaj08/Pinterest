@@ -20,7 +20,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
 
     @Override
     public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
-        // Log the full error with stack trace
+        
         log.error("Gateway error occurred for path: {} | Method: {} | Error Type: {}",
                 exchange.getRequest().getPath(),
                 exchange.getRequest().getMethod(),
@@ -31,7 +31,7 @@ public class GlobalErrorHandler implements ErrorWebExceptionHandler {
         response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
-        // Get root cause for better error messages
+        
         Throwable rootCause = ex;
         while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
             rootCause = rootCause.getCause();

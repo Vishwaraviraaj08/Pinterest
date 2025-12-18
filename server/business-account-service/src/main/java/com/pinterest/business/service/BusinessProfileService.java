@@ -54,7 +54,7 @@ public class BusinessProfileService {
         if (profiles.isEmpty()) {
             return null;
         }
-        // Return the first one if duplicates exist
+        
         return modelMapper.map(profiles.get(0), BusinessProfileResponse.class);
     }
 

@@ -24,7 +24,7 @@ public class BoardCollaborator {
     private Long userId;
 
     @Column(name = "permission")
-    private String permission = "EDIT"; // EDIT, VIEW
+    private String permission = "EDIT"; 
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
