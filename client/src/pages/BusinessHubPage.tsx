@@ -108,7 +108,7 @@ const BusinessHubPage: React.FC = () => {
         try {
             const data = await businessService.getAllBusinessProfiles();
 
-            // Fetch follower counts for all profiles
+            
             const profilesWithCounts = await Promise.all(data.map(async (profile) => {
                 try {
                     const followers = await collaborationService.getFollowers(profile.userId);
@@ -134,7 +134,7 @@ const BusinessHubPage: React.FC = () => {
             if (keyword.trim()) {
                 const data = await businessService.searchBusinessProfiles(keyword);
 
-                // Fetch follower counts for search results
+                
                 const profilesWithCounts = await Promise.all(data.map(async (profile) => {
                     try {
                         const followers = await collaborationService.getFollowers(profile.userId);

@@ -30,17 +30,17 @@ const BusinessProfilePage: React.FC = () => {
             const profileData = await businessService.getBusinessProfile(id);
             setProfile(profileData);
 
-            // Fetch boards
+
             const boardsData = await contentService.getUserBoards(profileData.userId);
             setBoards(boardsData);
 
-            // Check follow status
+
             if (user?.id && user.id !== profileData.userId) {
                 const following = await collaborationService.getFollowing(user.id);
                 setIsFollowing(following.some(f => f.followingId === profileData.userId));
             }
 
-            // Fetch real follower count
+
             try {
                 const followers = await collaborationService.getFollowers(profileData.userId);
                 setProfile(prev => prev ? { ...prev, followersCount: followers.length } : null);
@@ -69,7 +69,7 @@ const BusinessProfilePage: React.FC = () => {
             }
             setIsFollowing(!isFollowing);
 
-            // Refresh follower count
+
             const followers = await collaborationService.getFollowers(profile.userId);
             setProfile(prev => prev ? { ...prev, followersCount: followers.length } : null);
 
@@ -86,14 +86,14 @@ const BusinessProfilePage: React.FC = () => {
     const handleBlock = () => {
         if (window.confirm(`Are you sure you want to block ${profile?.businessName}?`)) {
             console.log('Blocked user:', profile?.userId);
-            // Implement block logic here
+
         }
     };
 
     const handleReport = () => {
         console.log('Reported user:', profile?.userId);
         alert('Thank you for your report. We will review this profile.');
-        // Implement report logic here
+
     };
 
     if (isLoading) {
@@ -270,7 +270,7 @@ const BusinessProfilePage: React.FC = () => {
                 </div>
             </Container>
 
-            {/* Modals */}
+            { }
             <Modal show={showContactModal} onHide={() => setShowContactModal(false)} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Contact {(profile?.businessName || "")}</Modal.Title>

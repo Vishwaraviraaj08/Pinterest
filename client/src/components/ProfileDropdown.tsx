@@ -33,7 +33,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => {
       }}
     >
       <Card.Body className="p-0">
-        {/* User Info Section */}
+        { }
         <div className="p-3 border-bottom">
           <p className="text-muted mb-1" style={{ fontSize: '14px' }}>
             Signed in as
@@ -43,7 +43,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => {
           </p>
         </div>
 
-        {/* View Profile Button */}
+        { }
         <Button
           variant="link"
           className="w-100 text-start text-dark text-decoration-none py-3 px-3"
@@ -56,7 +56,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onClose }) => {
           View Profile
         </Button>
 
-        {/* Log Out Button */}
+        { }
         <Button
           variant="link"
           className="w-100 text-start text-decoration-none py-3 px-3"

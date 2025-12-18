@@ -34,19 +34,19 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
 
   const loadPinDetails = async () => {
     try {
-      // Load comments
+      
       const fetchedComments = await contentService.getComments(pin.id);
       setComments(fetchedComments);
 
-      // Load author info
+      
       const authorData = await authService.getProfile(pin.userId);
       setAuthor(authorData);
 
-      // Load followers count
+      
       const followers = await collaborationService.getFollowers(pin.userId);
       setFollowersCount(followers.length);
 
-      // Check if following
+      
       if (user) {
         const myFollowing = await collaborationService.getFollowing(user.id);
         setIsFollowing(myFollowing.some(c => c.followingId === pin.userId));
@@ -130,7 +130,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
       >
         <Modal.Body className="p-0" style={{ borderRadius: '16px', overflow: 'hidden', height: '90vh', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)' }}>
           <div className="row g-0 h-100">
-            {/* Left Side - Image */}
+            { }
             <div className="col-md-7 bg-white d-flex align-items-center justify-content-center p-4" style={{ height: '90vh' }}>
               <img
                 src={pin.imageUrl}
@@ -146,9 +146,9 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
               />
             </div>
 
-            {/* Right Side - Content */}
+            { }
             <div className="col-md-5 d-flex flex-column bg-white" style={{ height: '90vh', borderLeft: '1px solid #e1e1e1' }}>
-              {/* Top Bar - Fixed */}
+              { }
               <div className="d-flex align-items-center justify-content-between p-3 border-bottom" style={{ minHeight: '60px' }}>
                 <div className="d-flex gap-2">
                   <Dropdown>
@@ -186,9 +186,9 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                 </div>
               </div>
 
-              {/* Scrollable Content Area */}
+              { }
               <div className="flex-grow-1 overflow-auto p-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
-                {/* Link */}
+                { }
                 {pin.link && (
                   <a
                     href={pin.link}
@@ -202,13 +202,13 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                   </a>
                 )}
 
-                {/* Title */}
+                { }
                 <h4 className="mb-2">{pin.title}</h4>
 
-                {/* Description */}
+                { }
                 <p className="text-secondary mb-3">{pin.description}</p>
 
-                {/* Sponsored Info */}
+                { }
                 {pin.isSponsored && (
                   <div className="mb-3 p-3 bg-light rounded">
                     <div className="d-flex justify-content-between align-items-center">
@@ -233,13 +233,13 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                   </div>
                 )}
 
-                {/* Stats */}
+                { }
                 <div className="d-flex gap-4 mb-3" style={{ fontSize: '14px', color: '#4a5565' }}>
                   <span>{pin.savesCount || 0} saves</span>
                   <span>{comments.length} comments</span>
                 </div>
 
-                {/* User Info */}
+                { }
                 {author && (
                   <div className="d-flex align-items-center gap-3 py-3 border-top border-bottom mb-4">
                     <Image
@@ -266,7 +266,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                   </div>
                 )}
 
-                {/* Comments Section - Scrollable */}
+                { }
                 <div className="mb-4">
                   <h5 className="mb-3">{comments.length} Comments</h5>
 
@@ -297,7 +297,7 @@ const PinDetailModal: React.FC<PinDetailModalProps> = ({ show, onHide, pin }) =>
                 </div>
               </div>
 
-              {/* Add Comment - Fixed at Bottom */}
+              { }
               <div className="p-3 border-top bg-white" style={{ minHeight: '80px' }}>
                 <Form onSubmit={handleAddComment}>
                   <div className="d-flex gap-2 align-items-center">

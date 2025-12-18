@@ -25,7 +25,7 @@ const VerticalNavbar: React.FC = () => {
     { icon: Briefcase, label: 'Business', path: '/business' },
     { icon: Users, label: 'Connections', path: '/connections' },
     { icon: Bell, label: 'Notifications', path: '/invitations' },
-    // { icon: Briefcase, label: 'Advertising', path: '/sponsored' },
+    
     { icon: Plus, label: 'Create', path: '/create-pin' },
   ];
 
@@ -50,7 +50,7 @@ const VerticalNavbar: React.FC = () => {
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      {/* Logo */}
+      { }
       <div
         style={{
           padding: '0 20px',
@@ -63,7 +63,7 @@ const VerticalNavbar: React.FC = () => {
         {isExpanded ? 'Pinterest' : 'P'}
       </div>
 
-      {/* Menu Items */}
+      { }
       <div style={{ flex: 1 }}>
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -115,7 +115,7 @@ const VerticalNavbar: React.FC = () => {
         })}
       </div>
 
-      {/* Logout at Bottom */}
+      { }
       <div
         onClick={handleLogout}
         style={{

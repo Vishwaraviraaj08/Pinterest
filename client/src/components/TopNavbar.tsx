@@ -78,7 +78,7 @@ const TopNavbar: React.FC = () => {
         zIndex: 1000,
       }}
     >
-      {/* Search Bar - Centered and takes most space */}
+      { }
       <div style={{ flex: 1, maxWidth: '800px', margin: '0 auto', position: 'relative' }} ref={searchRef}>
         <Form onSubmit={handleSearch}>
           <div className="position-relative">
@@ -103,7 +103,7 @@ const TopNavbar: React.FC = () => {
           </div>
         </Form>
 
-        {/* Search Suggestions */}
+        { }
         {showSearchSuggestions && searchResults.length > 0 && (
           <div
             className="position-absolute bg-white border rounded shadow-lg"
@@ -145,7 +145,7 @@ const TopNavbar: React.FC = () => {
         )}
       </div>
 
-      {/* Notifications */}
+      { }
       <div
         className="me-3 cursor-pointer p-2 rounded-circle hover-bg-light"
         onClick={() => navigate('/invitations')}
@@ -154,7 +154,7 @@ const TopNavbar: React.FC = () => {
         <Bell size={24} color="#5f5f5f" />
       </div>
 
-      {/* Profile Picture */}
+      { }
       <div className="position-relative" ref={profileRef}>
         <div
           onClick={() => setShowProfileDropdown(!showProfileDropdown)}

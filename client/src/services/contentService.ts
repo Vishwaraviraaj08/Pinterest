@@ -2,7 +2,7 @@ import api from '../utils/api';
 import { PinRequest, PinResponse, BoardRequest, BoardResponse } from '../types';
 
 export const contentService = {
-  // Pins
+  
   createPin: async (data: PinRequest): Promise<PinResponse> => {
     const response = await api.post<PinResponse>('/content/pins', data);
     return response.data;
@@ -47,7 +47,7 @@ export const contentService = {
     await api.delete(`/content/pins/${pinId}`);
   },
 
-  // Boards
+  
   createBoard: async (data: BoardRequest): Promise<BoardResponse> => {
     const response = await api.post<BoardResponse>('/content/boards', data);
     return response.data;
@@ -81,12 +81,12 @@ export const contentService = {
     await api.post(`/content/boards/${boardId}/pins/${pinId}`);
   },
 
-  // Reports
+  
   createReport: async (data: { title: string; message: string; pinId: number }): Promise<void> => {
     await api.post('/content/reports', data);
   },
 
-  // Comments
+  
   getComments: async (pinId: number): Promise<any[]> => {
     const response = await api.get<any[]>(`/content/comments/pin/${pinId}`);
     return response.data;

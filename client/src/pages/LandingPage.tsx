@@ -36,7 +36,7 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="landing-page">
-            {/* Masonry Background */}
+            { }
             <div className="masonry-background">
                 <div className="masonry-column">
                     {backgroundImages.slice(0, 5).map((img, idx) => (
@@ -68,10 +68,10 @@ const LandingPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Overlay */}
+            { }
             <div className="landing-overlay"></div>
 
-            {/* Hero Content */}
+            { }
             <Container className={`landing-hero ${isLoaded ? 'fade-in' : ''}`}>
                 <div className="hero-content">
                     <h1 className="hero-title text-danger display-1">

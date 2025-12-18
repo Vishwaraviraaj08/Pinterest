@@ -5,26 +5,26 @@ import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const backgroundImages = [
-  'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=600', // Bright beach
-  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&h=400', // Mountain lake
-  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300', // Modern glass building
-  'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=500', // Colorful flowers
-  'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=400', // Tropical fruits
-  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300', // Forest trees
-  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=500', // Tropical beach
-  'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=300&h=400', // Contemporary building
-  'https://images.unsplash.com/photo-1490682143684-14369e18dce8?w=400&h=300', // Citrus fruits
-  'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=300&h=500', // Modern architecture
-  'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=400', // Nature flowers meadow
-  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300', // Mountain landscape
-  'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=400&h=600', // Blue water lake
-  'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=300&h=400', // Palm trees
-  'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&h=300', // Berries fruits
-  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300&h=500', // City buildings skyline
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=400', // Bright flowers garden
-  'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=300&h=300', // Lake reflection
-  'https://images.unsplash.com/photo-1610878180933-123728745d22?w=400&h=500', // Fresh tropical fruits
-  'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=300&h=400', // Urban architecture
+  'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=600', 
+  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&h=400', 
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300', 
+  'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=500', 
+  'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400&h=400', 
+  'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300', 
+  'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=500', 
+  'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=300&h=400', 
+  'https://images.unsplash.com/photo-1490682143684-14369e18dce8?w=400&h=300', 
+  'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=300&h=500', 
+  'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=400&h=400', 
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300', 
+  'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=400&h=600', 
+  'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=300&h=400', 
+  'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&h=300', 
+  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300&h=500', 
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400&h=400', 
+  'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=300&h=300', 
+  'https://images.unsplash.com/photo-1610878180933-123728745d22?w=400&h=500', 
+  'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=300&h=400', 
 ];
 
 const RegisterPage: React.FC = () => {
@@ -42,7 +42,7 @@ const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  // Create doubled images for seamless loop
+  
   const scrollingImages = [...backgroundImages, ...backgroundImages];
 
   const validatePassword = (password: string) => {

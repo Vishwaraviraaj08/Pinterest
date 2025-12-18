@@ -35,7 +35,7 @@ const BoardsPage: React.FC = () => {
   return (
     <>
       <Container className="py-5" style={{ marginTop: '72px' }}>
-        {/* Header */}
+        { }
         <div className="d-flex justify-content-between align-items-center mb-4">
           <h4 className="mb-0">Your Boards</h4>
           <Button
@@ -55,7 +55,7 @@ const BoardsPage: React.FC = () => {
           </Alert>
         )}
 
-        {/* Boards Grid */}
+        { }
         <Row>
           {boards.map((board) => (
             <Col key={board.id} xs={12} sm={6} md={4} lg={3} className="mb-4">

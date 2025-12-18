@@ -33,7 +33,7 @@ const ProfilePage: React.FC = () => {
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
-  // Search and Sort State
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
@@ -41,7 +41,7 @@ const ProfilePage: React.FC = () => {
   const isOwnProfile = currentUser?.id === parsedUserId;
   const isFollowing = following.some(f => f.followingId === parsedUserId);
 
-  // Filter and Sort Logic
+  
   const filteredPins = useMemo(() => {
     let result = [...pins];
     if (searchQuery) {
@@ -81,7 +81,7 @@ const ProfilePage: React.FC = () => {
 
       setLoading(true);
       try {
-        // Fetch profile
+        
         if (isOwnProfile && currentUser) {
           setProfileUser(currentUser);
           setEditForm({
@@ -95,7 +95,7 @@ const ProfilePage: React.FC = () => {
           setProfileUser(data);
         }
 
-        // Fetch content
+        
         await Promise.all([
           fetchUserPins(parsedUserId),
           fetchUserBoards(parsedUserId),
@@ -106,7 +106,7 @@ const ProfilePage: React.FC = () => {
           fetchUserDrafts();
         }
 
-        // Fetch counts separately to avoid context conflict
+        
         try {
           const followersData = await collaborationService.getFollowers(parsedUserId);
           setFollowersCount(followersData.length);
@@ -129,7 +129,7 @@ const ProfilePage: React.FC = () => {
   const handleSaveProfile = () => {
     updateProfile(editForm);
     setShowEditModal(false);
-    // Optimistically update local state if it's own profile
+    
     if (isOwnProfile && profileUser) {
       setProfileUser({ ...profileUser, ...editForm });
     }
@@ -145,7 +145,7 @@ const ProfilePage: React.FC = () => {
         await followUser(parsedUserId);
         setFollowersCount(prev => prev + 1);
       }
-      // Refresh following list
+      
       if (currentUser) fetchFollowing(currentUser.id);
     } catch (error) {
       console.error('Failed to toggle follow:', error);
@@ -174,7 +174,7 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <Container style={{ maxWidth: '992px', marginTop: '112px' }}>
-        {/* Profile Header */}
+        { }
         <div className="text-center mb-4">
           <Image
             src={profileUser?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileUser?.username}`}
@@ -187,7 +187,7 @@ const ProfilePage: React.FC = () => {
           <p className="text-muted mb-2">@{profileUser?.username}</p>
           {profileUser?.bio && <p className="mb-3">{profileUser.bio}</p>}
 
-          {/* Stats */}
+          { }
           <div className="d-flex justify-content-center gap-4 mb-4">
             <div className="cursor-pointer" onClick={() => navigate(`/followers/${parsedUserId}?tab=followers`)}>
               <strong style={{ fontSize: '16px' }}>{followersCount}</strong>
@@ -199,7 +199,7 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          { }
           <div className="d-flex justify-content-center gap-2">
             {isOwnProfile ? (
               <>
@@ -240,7 +240,7 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+        { }
         <div className="border-bottom mb-4">
           <Nav className="justify-content-center">
             <Nav.Item>
@@ -290,7 +290,7 @@ const ProfilePage: React.FC = () => {
           </Nav>
         </div>
 
-        {/* Search and Filter Bar */}
+        { }
         <div className="mb-4">
           <Row className="g-2 align-items-center">
             <Col>
@@ -327,7 +327,7 @@ const ProfilePage: React.FC = () => {
           </Row>
         </div>
 
-        {/* Created Tab - Pins Only */}
+        { }
         {activeTab === 'created' && (
           <div className="mb-4">
             {pinsLoading ? (
@@ -344,7 +344,7 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* Saved Tab - Boards */}
+        { }
         {activeTab === 'saved' && (
           <div className="mb-4">
             {boardsLoading ? (
@@ -363,7 +363,7 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
 
-        {/* Drafts Tab */}
+        { }
         {activeTab === 'drafts' && isOwnProfile && (
           <div className="mb-4">
             <h5 className="mb-3">Your Drafts</h5>

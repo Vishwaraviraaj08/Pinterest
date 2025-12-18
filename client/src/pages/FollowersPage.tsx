@@ -32,10 +32,10 @@ const FollowersPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserResponse | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
 
-  // Store IDs of users the CURRENT user is following - using Record for reliable re-renders
+  
   const [myFollowingIds, setMyFollowingIds] = useState<Record<number, boolean>>({});
 
-  // Sync activeTab with URL
+  
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab && (tab === 'followers' || tab === 'following')) {
@@ -56,7 +56,7 @@ const FollowersPage: React.FC = () => {
     }
   }, [userId, fetchFollowers, fetchFollowing]);
 
-  // Fetch my own following list to know who I am following
+  
   useEffect(() => {
     const fetchMyFollowing = async () => {
       if (currentUser?.id) {
@@ -79,7 +79,7 @@ const FollowersPage: React.FC = () => {
     const fetchDetails = async () => {
       setIsLoadingDetails(true);
       try {
-        // Enrich Followers
+        
         if (followers.length > 0) {
           const enrichedFollowersData = await Promise.all(
             followers.map(async (conn) => {
@@ -100,7 +100,7 @@ const FollowersPage: React.FC = () => {
           setEnrichedFollowers([]);
         }
 
-        // Enrich Following
+        
         if (following.length > 0) {
           const enrichedFollowingData = await Promise.all(
             following.map(async (conn) => {
@@ -133,7 +133,7 @@ const FollowersPage: React.FC = () => {
     }
   }, [followers, following, isConnLoading]);
 
-  // Separate effect to update isFollowing status when myFollowingIds changes
+  
   useEffect(() => {
     setEnrichedFollowers(prev =>
       prev.map(user => ({
@@ -167,18 +167,18 @@ const FollowersPage: React.FC = () => {
       }
 
 
-      // If we are viewing our own profile, refresh the lists to reflect changes
+      
       if (currentUser?.id === parseInt(userId || '0')) {
         fetchFollowing(parseInt(userId!));
       }
     } catch (error: any) {
-      // Handle "Already following" error by syncing local state
+      
       if (error.response?.status === 400) {
         setMyFollowingIds(prev => ({
           ...prev,
           [targetUserId]: true
         }));
-        // Also refresh list if it's our profile, as we are apparently following them
+        
         if (currentUser?.id === parseInt(userId || '0')) {
           fetchFollowing(parseInt(userId!));
         }

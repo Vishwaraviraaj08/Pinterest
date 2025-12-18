@@ -48,20 +48,20 @@ const EditBusinessProfileModal: React.FC<EditBusinessProfileModalProps> = ({ sho
                 category: formData.category,
             };
 
-            // Assuming update endpoint exists or using create for update if backend supports it. 
-            // If update endpoint is missing, we might need to add it to backend.
-            // For now, let's assume we can use a similar structure or need to add update method.
-            // Checking businessService, it might not have update method. 
-            // If not, I will need to add it. For now I'll use a placeholder or assume create works if ID is passed (unlikely).
-            // Actually, I should check businessService first. 
-            // But to proceed, I'll assume I need to add `updateBusinessProfile` to service.
+            
+            
+            
+            
+            
+            
+            
 
-            // Wait, I haven't checked if update endpoint exists in backend. 
-            // The user asked to "implement all features". 
-            // I'll assume I need to add it.
+            
+            
+            
 
-            // For this step, I'll write the component assuming the service method exists, 
-            // and then I'll update the service.
+            
+            
 
             await businessService.updateBusinessProfile(profile.id.toString(), request);
 

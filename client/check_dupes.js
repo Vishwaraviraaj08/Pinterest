@@ -15,7 +15,7 @@ async function checkAllPins() {
             console.log('No duplicate IDs in public pins.');
         }
 
-        // Check for duplicate content (title + description)
+        
         const contentMap = new Map();
         let contentDupes = 0;
         pins.forEach(p => {

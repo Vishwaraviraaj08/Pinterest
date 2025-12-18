@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
 }
 
-/* Auth Page Background Scrolling Animation */
+ 
 @keyframes scrollUp {
   0% {
     transform: translateY(0);
@@ -47,7 +47,7 @@ body {
   height: 200vh;
 }
 
-/* Custom Pinterest Red Button */
+ 
 .btn-pinterest {
   background-color: var(--pinterest-red);
   color: white;
@@ -69,7 +69,7 @@ body {
   box-shadow: none;
 }
 
-/* Custom Secondary Button */
+ 
 .btn-secondary-custom {
   background-color: #efefef;
   color: #000;
@@ -85,7 +85,7 @@ body {
   color: #000;
 }
 
-/* Navbar Styles */
+ 
 .navbar-pinterest {
   background-color: white;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
@@ -98,7 +98,7 @@ body {
   font-size: 24px;
 }
 
-/* Search Bar */
+ 
 .search-bar-container {
   flex: 1;
   max-width: 800px;
@@ -117,7 +117,7 @@ body {
   border: none;
 }
 
-/* Masonry Grid */
+ 
 .masonry-grid {
   column-count: 5;
   column-gap: 16px;
@@ -154,7 +154,7 @@ body {
   cursor: pointer;
 }
 
-/* Pin Card Hover Effects */
+ 
 .pin-card {
   border-radius: 16px;
   overflow: hidden;
@@ -210,7 +210,7 @@ body {
   opacity: 1;
 }
 
-/* Board Card */
+ 
 .board-card {
   border: none;
   border-radius: 16px;
@@ -244,7 +244,7 @@ body {
   object-fit: cover;
 }
 
-/* Profile Styles */
+ 
 .profile-header {
   text-align: center;
   padding: 40px 20px;
@@ -269,7 +269,7 @@ body {
   text-align: center;
 }
 
-/* Auth Pages */
+ 
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -295,7 +295,7 @@ body {
   margin-bottom: 24px;
 }
 
-/* Modal customization */
+ 
 .modal-pin-detail {
   max-width: 1200px;
   width: 90%;
@@ -316,7 +316,7 @@ body {
   }
 }
 
-/* Utility Classes */
+ 
 .cursor-pointer {
   cursor: pointer;
 }
@@ -329,7 +329,7 @@ body {
   background-color: var(--pinterest-red);
 }
 
-/* Loading Spinner */
+ 
 .loading-container {
   display: flex;
   justify-content: center;

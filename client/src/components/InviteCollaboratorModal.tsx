@@ -46,7 +46,7 @@ const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = ({
                 ...following.map(f => f.followingId)
             ]);
 
-            // Remove current user ID just in case
+            
             userIds.delete(currentUser.id);
 
             if (userIds.size > 0) {
@@ -66,7 +66,7 @@ const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = ({
         setError(null);
         try {
             const results = await authService.searchUsers(keyword);
-            // Filter out current user
+            
             setSearchResults(results.filter(u => u.id !== currentUser?.id));
         } catch (err) {
             console.error('Failed to search users', err);

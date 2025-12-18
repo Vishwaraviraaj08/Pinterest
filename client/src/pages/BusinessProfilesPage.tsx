@@ -29,14 +29,14 @@ const BusinessProfilesPage: React.FC = () => {
       setIsLoading(true);
       try {
         const data = await businessService.getAllBusinessProfiles();
-        // Transform API data to UI data with mock values for missing fields
+        
         const uiData: BusinessProfileUI[] = data.map(profile => ({
           ...profile,
-          followers: Math.floor(Math.random() * 10000), // Mock
-          pins: Math.floor(Math.random() * 500), // Mock
-          isFollowing: false, // Mock
-          isVerified: Math.random() > 0.5, // Mock
-          category: categories[Math.floor(Math.random() * (categories.length - 1)) + 1], // Mock random category
+          followers: Math.floor(Math.random() * 10000), 
+          pins: Math.floor(Math.random() * 500), 
+          isFollowing: false, 
+          isVerified: Math.random() > 0.5, 
+          category: categories[Math.floor(Math.random() * (categories.length - 1)) + 1], 
         }));
         setBusinesses(uiData);
       } catch (err: any) {
@@ -77,7 +77,7 @@ const BusinessProfilesPage: React.FC = () => {
 
   return (
     <Container className="py-4" style={{ marginTop: '80px' }}>
-      {/* Header */}
+      { }
       <div className="mb-4">
         <div className="d-flex align-items-center gap-2 mb-2">
           <Briefcase size={24} color="#e60023" />
@@ -90,7 +90,7 @@ const BusinessProfilesPage: React.FC = () => {
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {/* Tabs */}
+      { }
       <div className="mb-4">
         <Nav variant="tabs">
           <Nav.Item>
@@ -130,7 +130,7 @@ const BusinessProfilesPage: React.FC = () => {
 
       {activeTab === 'profiles' && (
         <>
-          {/* Search and Filter */}
+          { }
           <Row className="mb-4">
             <Col md={8}>
               <div className="position-relative">
@@ -174,7 +174,7 @@ const BusinessProfilesPage: React.FC = () => {
             </Col>
           </Row>
 
-          {/* Business Profiles Grid */}
+          { }
           <Row>
             {filteredBusinesses.map((business) => (
               <Col key={business.id} lg={4} md={6} className="mb-4">
@@ -222,7 +222,7 @@ const BusinessProfilesPage: React.FC = () => {
                             <CheckCircle size={16} color="#0074d9" fill="#0074d9" />
                           )}
                         </div>
-                        {/* <small className="text-muted">{business.username}</small> */}
+                        { }
                       </div>
                     </div>
 

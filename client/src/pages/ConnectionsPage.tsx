@@ -10,7 +10,7 @@ import { Dropdown } from 'react-bootstrap';
 import { UserX, Flag } from 'lucide-react';
 
 interface ConnectionUI extends UserResponse {
-  connectionId: number; // ID of the connection record
+  connectionId: number; 
   isFollowing: boolean;
 }
 
@@ -33,7 +33,7 @@ const ConnectionsPage: React.FC = () => {
     }
   }, [user?.id, fetchFollowers, fetchFollowing]);
 
-  // Populate myFollowingIds from the following array
+  
   useEffect(() => {
     const ids: Record<number, boolean> = {};
     following.forEach(conn => {
@@ -46,7 +46,7 @@ const ConnectionsPage: React.FC = () => {
     const fetchDetails = async () => {
       setIsLoadingDetails(true);
       try {
-        // Enrich Followers
+        
         if (followers.length > 0) {
           const enrichedFollowersData = await Promise.all(
             followers.map(async (conn) => {
@@ -68,7 +68,7 @@ const ConnectionsPage: React.FC = () => {
           setEnrichedFollowers([]);
         }
 
-        // Enrich Following
+        
         if (following.length > 0) {
           const enrichedFollowingData = await Promise.all(
             following.map(async (conn) => {
@@ -102,7 +102,7 @@ const ConnectionsPage: React.FC = () => {
     }
   }, [followers, following, isConnLoading]);
 
-  // Separate effect to update isFollowing status when myFollowingIds changes
+  
   useEffect(() => {
     setEnrichedFollowers(prev =>
       prev.map(user => ({
@@ -135,12 +135,12 @@ const ConnectionsPage: React.FC = () => {
         }));
       }
 
-      // If we are on our own connections page, refresh the following list
+      
       if (user?.id) {
         fetchFollowing(user.id);
       }
     } catch (error: any) {
-      // Handle "Already following" error by syncing local state
+      
       if (error.response?.status === 400) {
         setMyFollowingIds(prev => ({
           ...prev,
@@ -193,12 +193,12 @@ const ConnectionsPage: React.FC = () => {
   return (
     <>
       <Container style={{ maxWidth: '800px', marginTop: '80px' }}>
-        {/* Header */}
+        { }
         <h4 className="mb-4">Connections</h4>
 
         {connError && <Alert variant="danger">{connError}</Alert>}
 
-        {/* Tabs */}
+        { }
         <div className="mb-4">
           <Nav variant="tabs">
             <Nav.Item>
@@ -230,7 +230,7 @@ const ConnectionsPage: React.FC = () => {
           </Nav>
         </div>
 
-        {/* Search */}
+        { }
         <Form.Control
           type="text"
           placeholder="Search users..."
@@ -245,7 +245,7 @@ const ConnectionsPage: React.FC = () => {
           }}
         />
 
-        {/* Connections List */}
+        { }
         <div className="d-flex flex-column gap-3">
           {filteredConnections.map((user) => (
             <Card key={user.id} className="border" style={{ borderRadius: '12px' }}>

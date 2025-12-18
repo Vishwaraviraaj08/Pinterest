@@ -22,7 +22,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
 
     setIsSaving(true);
     try {
-      // Save to all selected boards
+      
       await Promise.all(selectedBoards.map(boardId =>
         contentService.addPinToBoard(Number(boardId), Number(pin.id))
       ));
@@ -39,7 +39,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
     if (newBoardName.trim()) {
       try {
         const newBoard = await contentService.createBoard({ name: newBoardName });
-        // Automatically save to the new board
+        
         await contentService.addPinToBoard(newBoard.id, Number(pin.id));
         setShowCreateBoard(false);
         setNewBoardName('');
@@ -51,7 +51,7 @@ const SaveToBoardModal: React.FC<SaveToBoardModalProps> = ({ show, onHide, pin, 
   };
 
   const isPinSavedToBoard = (board: Board) => {
-    // Ensure pins array exists and check for pin ID match
+    
     return board.pins?.some(p => Number(p.id) === Number(pin.id)) ?? false;
   };
 

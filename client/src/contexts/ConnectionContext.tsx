@@ -63,10 +63,10 @@ export const ConnectionProvider: React.FC<{ children: ReactNode }> = ({ children
         setError(null);
         try {
             await collaborationService.followUser(userId);
-            // Optimistically update or refetch
-            // For now, we'll just refetch following list if we have the current user's ID available
-            // But since we don't have current user ID here easily without circular dependency, 
-            // we rely on the component to trigger refetch if needed
+            
+            
+            
+            
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to follow user');
             throw err;

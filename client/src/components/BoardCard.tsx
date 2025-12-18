@@ -55,7 +55,7 @@ const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
             </div>
           )}
 
-          {/* Privacy Icon */}
+          { }
           {board.isPrivate && (
             <div
               className="position-absolute bg-white d-flex align-items-center justify-content-center"
@@ -72,7 +72,7 @@ const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
             </div>
           )}
 
-          {/* Edit Button - Visible on Hover (handled by CSS group-hover usually, but here we can just show it always or use state if needed. For simplicity, let's show it at bottom right) */}
+          { }
           {isOwner && (
             <Button
               variant="light"

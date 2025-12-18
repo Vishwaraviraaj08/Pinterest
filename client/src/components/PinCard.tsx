@@ -31,7 +31,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
         setUserBoards(boards);
         setShowSaveModal(true);
       } else {
-        // Redirect to login if not logged in
+        
         navigate('/login');
       }
     } catch (error) {
@@ -70,7 +70,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
             </Badge>
           )}
 
-          {/* Top Actions */}
+          { }
           <div className="pin-top-actions">
             <Button
               variant="danger"
@@ -105,7 +105,7 @@ const PinCard: React.FC<PinCardProps> = ({ pin }) => {
 
           <img src={pin.imageUrl} alt={pin.title} loading="lazy" />
 
-          {/* Title Overlay at Bottom */}
+          { }
           <div className="pin-title-overlay">
             <p className="mb-0" style={{ fontSize: '14px', fontWeight: '600' }}>
               {pin.title}

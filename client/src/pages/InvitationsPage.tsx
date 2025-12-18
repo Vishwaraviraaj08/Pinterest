@@ -27,10 +27,10 @@ const InvitationsPage: React.FC = () => {
       try {
         const data = await collaborationService.getInvitations(user.id);
 
-        // Filter only PENDING invitations
+        
         const pendingInvitations = data.filter(inv => inv.status === 'PENDING');
 
-        // Enrich with inviter details
+        
         const enriched = await Promise.all(
           pendingInvitations.map(async (inv) => {
             try {
@@ -59,10 +59,10 @@ const InvitationsPage: React.FC = () => {
       if (!user?.id) return;
       await collaborationService.respondToInvitation(invitationId, response);
 
-      // Remove from list
+      
       setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
 
-      // Optional: Show success toast/alert
+      
     } catch (err) {
       console.error('Failed to respond to invitation', err);
       alert('Failed to process invitation response.');

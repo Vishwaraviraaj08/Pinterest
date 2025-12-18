@@ -22,7 +22,7 @@ const ForgotPasswordPage: React.FC = () => {
         setLoading(true);
         try {
             const response = await authService.generateOtp({ email });
-            // Open OTP simulation page in new window
+            
             window.open(`/otp-display?otp=${response.otp}`, '_blank', 'width=400,height=400');
             setStep(2);
             setSuccessMessage('OTP sent! Check the popup window.');
@@ -76,7 +76,7 @@ const ForgotPasswordPage: React.FC = () => {
 
     return (
         <div style={{ position: 'relative', height: '100vh', overflow: 'hidden' }}>
-            {/* Static Background */}
+            { }
             <div
                 style={{
                     position: 'absolute',

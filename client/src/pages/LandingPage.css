@@ -7,7 +7,7 @@
   background-color: #000;
 }
 
-/* Masonry Background */
+ 
 .masonry-background {
   position: absolute;
   top: 0;
@@ -62,7 +62,7 @@
   object-fit: cover;
 }
 
-/* Overlay */
+ 
 .landing-overlay {
   position: absolute;
   top: 0;
@@ -78,7 +78,7 @@
   z-index: 1;
 }
 
-/* Hero Content */
+ 
 .landing-hero {
   position: relative;
   z-index: 2;
@@ -199,7 +199,7 @@
   margin-top: 24px;
 }
 
-/* Responsive Design */
+ 
 @media (max-width: 768px) {
   .masonry-background {
     gap: 8px;

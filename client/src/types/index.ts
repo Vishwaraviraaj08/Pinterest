@@ -159,7 +159,7 @@ export interface OtpVerificationRequest {
     otp: string;
 }
 
-// Aliases for backward compatibility
+
 export type Pin = PinResponse;
 export type User = UserResponse;
 export type Board = BoardResponse;

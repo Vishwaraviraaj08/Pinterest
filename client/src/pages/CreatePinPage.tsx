@@ -369,7 +369,7 @@ const CreatePinPage: React.FC = () => {
         </Row>
       </Container>
 
-      {/* Preview Modal */}
+      { }
       <Modal show={showPreview} onHide={() => setShowPreview(false)} size="lg" centered>
         <Modal.Header closeButton>
           <Modal.Title>Pin Preview</Modal.Title>
@@ -418,7 +418,7 @@ const CreatePinPage: React.FC = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Save Draft Confirmation */}
+      { }
       <Modal show={showDraftConfirm} onHide={() => setShowDraftConfirm(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Save as Draft</Modal.Title>

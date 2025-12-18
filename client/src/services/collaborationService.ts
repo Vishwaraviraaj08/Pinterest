@@ -2,7 +2,7 @@ import api from '../utils/api';
 import { InvitationRequest, InvitationResponse, ConnectionResponse } from '../types';
 
 export const collaborationService = {
-  // Invitations
+  
   createInvitation: async (data: InvitationRequest): Promise<InvitationResponse> => {
     const response = await api.post<InvitationResponse>('/collaboration/invitations', data);
     return response.data;
@@ -18,7 +18,7 @@ export const collaborationService = {
     return result.data;
   },
 
-  // Connections
+  
   followUser: async (followingId: number): Promise<ConnectionResponse> => {
     const response = await api.post<ConnectionResponse>(`/collaboration/connections/follow/${followingId}`);
     return response.data;

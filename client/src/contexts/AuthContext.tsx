@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode } from 'react';
 import { authService } from '../services/authService';
 import { UserResponse, RegisterRequest } from '../types';
 
-// Extend UserResponse if we need extra frontend-only fields
+
 interface User extends UserResponse {
   followers: number;
   following: number;
@@ -29,7 +29,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize state from sessionStorage immediately to prevent redirect issues
+  
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = sessionStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -49,16 +49,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await authService.login({ email, password });
       const token = response.token;
 
-      // Store token in session storage
+      
       sessionStorage.setItem('token', token);
 
-      // Fetch user profile
+      
       const userProfile = await authService.getProfile(response.userId);
 
       const userData: User = {
         ...userProfile,
-        followers: 0, // TODO: Fetch real count
-        following: 0, // TODO: Fetch real count
+        followers: 0, 
+        following: 0, 
       };
 
       setUser(userData);
@@ -98,12 +98,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    // Clear sessionStorage first (synchronous)
+    
     sessionStorage.removeItem('user');
     sessionStorage.removeItem('token');
-    sessionStorage.clear(); // Clear all sessionStorage to be safe
+    sessionStorage.clear(); 
 
-    // Then update state
+    
     setUser(null);
     setIsAuthenticated(false);
   };

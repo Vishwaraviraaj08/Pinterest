@@ -32,7 +32,7 @@ const SponsoredPinDetailModal: React.FC<SponsoredPinDetailModalProps> = ({
         >
             <Modal.Body className="p-0" style={{ borderRadius: '16px', overflow: 'hidden', height: '85vh', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)' }}>
                 <div className="row g-0 h-100">
-                    {/* Left Side - Image */}
+                    { }
                     <div className="col-md-7 bg-black d-flex align-items-center justify-content-center position-relative">
                         <div
                             className="position-absolute w-100 h-100"
@@ -68,9 +68,9 @@ const SponsoredPinDetailModal: React.FC<SponsoredPinDetailModalProps> = ({
                         </Button>
                     </div>
 
-                    {/* Right Side - Content */}
+                    { }
                     <div className="col-md-5 bg-white d-flex flex-column h-100">
-                        {/* Header */}
+                        { }
                         <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
                             <div className="d-flex align-items-center gap-3">
                                 <div className="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '48px', height: '48px' }}>
@@ -86,7 +86,7 @@ const SponsoredPinDetailModal: React.FC<SponsoredPinDetailModalProps> = ({
                             </Button>
                         </div>
 
-                        {/* Scrollable Body */}
+                        { }
                         <div className="flex-grow-1 overflow-auto p-4">
                             <h2 className="fw-bold mb-3 display-6">{pin.title}</h2>
                             <p className="text-secondary lead mb-4" style={{ fontSize: '1.1rem' }}>{pin.description}</p>
@@ -125,7 +125,7 @@ const SponsoredPinDetailModal: React.FC<SponsoredPinDetailModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Footer */}
+                        { }
                         <div className="p-4 border-top bg-light">
                             {pin.promotionLink && (
                                 <Button

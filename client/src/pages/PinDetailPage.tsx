@@ -53,7 +53,7 @@ const PinDetailPage: React.FC = () => {
               username: userProfile.firstName ? `${userProfile.firstName} ${userProfile.lastName}` : userProfile.username,
               avatar: userProfile.avatar || `/public/default-avatar.svg`,
               text: c.text,
-              timestamp: new Date(c.createdAt).toLocaleDateString(), // Simple formatting
+              timestamp: new Date(c.createdAt).toLocaleDateString(), 
               userId: c.userId
             };
           } catch (err) {
@@ -70,7 +70,7 @@ const PinDetailPage: React.FC = () => {
         })
       );
 
-      // Sort by newest first
+      
       setComments(commentsWithUserData.reverse());
     } catch (err) {
       console.error('Failed to fetch comments:', err);
@@ -130,7 +130,7 @@ const PinDetailPage: React.FC = () => {
           pinId: parseInt(pinId)
         });
         setComment('');
-        fetchComments(); // Refresh comments
+        fetchComments(); 
       } catch (err) {
         console.error('Failed to add comment:', err);
         alert('Failed to add comment');

@@ -70,7 +70,7 @@ const App: React.FC = () => {
                 <ScrollToTop />
                 <div className="app-container">
                   <Routes>
-                    {/* ... existing routes ... */}
+                    { }
                     <Route
                       path="/login"
                       element={

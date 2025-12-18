@@ -29,13 +29,13 @@ const BoardPage: React.FC = () => {
         setBoardDescription(foundBoard.description || '');
         setIsPrivate(foundBoard.isPrivate);
       } else {
-        // If board not found in boards list (e.g., on page refresh), fetch it directly
+        
         fetchBoardById(parseInt(boardId));
       }
     }
   }, [boardId, boards, fetchBoardById]);
 
-  // Sync with selectedBoard from context when it's fetched
+  
   useEffect(() => {
     if (selectedBoard && selectedBoard.id.toString() === boardId) {
       setBoard(selectedBoard);
